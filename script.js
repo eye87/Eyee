@@ -8,6 +8,48 @@ menu.addEventListener('close',()=>{document.body.classList.remove('menu-open');t
 const video = document.querySelector('#reel');
 const videoButton = document.querySelector('#video-toggle');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const footerDirectory = document.querySelector('.footer-directory');
+if (footerDirectory) {
+  const mobileFooter = matchMedia('(max-width: 650px)');
+  const sections = Array.from(footerDirectory.children);
+  const contactSection = sections[sections.length - 1];
+  const accordionSections = sections.map((section, index) => {
+    const heading = section.querySelector('h3');
+    const label = document.createElement('span');
+    label.textContent = heading.textContent;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'footer-section-toggle';
+    button.textContent = heading.textContent;
+    button.hidden = true;
+    const content = document.createElement('div');
+    content.id = `footer-section-${index}`;
+    content.className = 'footer-section-content';
+    while (heading.nextSibling) content.append(heading.nextSibling);
+    heading.replaceChildren(label, button);
+    section.append(content);
+    button.setAttribute('aria-controls', content.id);
+    let expanded = section === contactSection;
+    const update = () => {
+      button.hidden = !mobileFooter.matches;
+      label.hidden = mobileFooter.matches;
+      content.hidden = mobileFooter.matches && !expanded;
+      button.setAttribute('aria-expanded', String(expanded));
+    };
+    button.addEventListener('click', () => {
+      expanded = !expanded;
+      update();
+    });
+    return update;
+  });
+  const updateFooterAccordion = () => {
+    if (mobileFooter.matches) footerDirectory.prepend(contactSection);
+    else sections.forEach((section) => footerDirectory.append(section));
+    accordionSections.forEach((update) => update());
+  };
+  mobileFooter.addEventListener('change', updateFooterAccordion);
+  updateFooterAccordion();
+}
 const footerConversation = document.querySelector('.footer');
 const footerEye = document.querySelector('.footer-brand-mark');
 const eyePointer = matchMedia('(hover: hover) and (pointer: fine)');

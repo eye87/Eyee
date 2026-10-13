@@ -2890,7 +2890,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: rgba(0, 13, 73, 0.48);
+  background: rgba(0, 13, 73, 0.72);
   border: 0;
   border-radius: inherit;
   pointer-events: none;
@@ -4788,6 +4788,30 @@ body.menu-open {
   .footer-conversation-action p { font-size: 17px; }
   .footer-directory { grid-template-columns: minmax(0, 1fr); }
   .footer-directory > :last-child { padding-left: 0; border-left: 0; }
+  .footer-directory { gap: 0; }
+  .footer-directory h3 { margin-bottom: 0; }
+  .footer-section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 60px;
+    padding: 16px 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .footer-section-toggle::after { content: '+'; font-size: 24px; font-weight: 400; }
+  .footer-section-toggle[aria-expanded="true"]::after { content: '−'; }
+  .footer-section-toggle:focus-visible { outline: 2px solid var(--color-blue-light); outline-offset: 4px; }
+  .footer-section-content { padding: 4px 0 24px; }
+}
+.footer-section-toggle[hidden], .footer-section-content[hidden] { display: none; }
+@media (max-width: 650px) {
+  .client-wall #client-title { text-align: center; margin-inline: auto; }
 }
 
 /* Editorial customer stories: one readable column and a connected footer. */
@@ -5112,8 +5136,8 @@ body.menu-open {
 }
 @media (max-width: 650px) {
   .review-google-link {
-    flex-basis: 100%;
-    margin-left: 0;
+    flex: 1 1 140px;
+    margin-left: 8px;
   }
 }
 .testimonials .testimonial-story > .testimonial-author {
@@ -5179,7 +5203,10 @@ body.menu-open {
   }
   .testimonials .review-company {
     font-size: 24px;
+    align-self: center;
+    margin-block: 0;
   }
+  .testimonials .review-company-name { display: block; }
   .testimonials .testimonial-story {
     grid-column: 1 / -1;
     grid-row: 2;
@@ -5195,7 +5222,12 @@ body.menu-open {
   padding-top: 96px;
 }
 .client-wall h2 {
-  font-size: clamp(36px, 4.3vw, 64px);
+  font-size: clamp(48px, 6.2vw, 92px);
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+}
+@media (max-width: 650px) {
+  .client-wall h2 { font-size: clamp(39px, 9.7vw, 58px); }
 }
 .client-wall .eyee-logoslider-wrapper {
   --gap: 48px;
