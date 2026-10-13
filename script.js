@@ -166,6 +166,13 @@ const reviewSection=document.querySelector('.testimonials');
 if(reviewSection){
  const slides=[...reviewSection.querySelectorAll('.testimonial-slide')];
  const controls=reviewSection.querySelector('.testimonial-controls');
+ const reviewStage=reviewSection.querySelector('.testimonial-stage');
+ const mobileReviews=matchMedia('(max-width: 650px)');
+ function positionReviewControls(){
+  if(mobileReviews.matches)reviewStage.append(controls);
+  else reviewStage.prepend(controls);
+ }
+ mobileReviews.addEventListener('change',positionReviewControls);
  let currentReview=0;
  function updateReviewExcerpt(){
   const slide=slides[currentReview];
@@ -199,7 +206,7 @@ if(reviewSection){
    button.setAttribute('aria-expanded','false');button.textContent='Lees meer';
   });
   updateReviewExcerpt();
-  reviewSection.querySelector('.testimonial-stage').prepend(controls);
+  positionReviewControls();
  }
  if(slides.length>1){
   reviewSection.classList.add('is-interactive');controls.hidden=false;
@@ -234,3 +241,15 @@ document.querySelector('.header .brand').addEventListener('click',event=>{
  event.preventDefault();
  window.location.reload();
 });
+// Match the mobile reading order to its stacked hero composition.
+const heroPortrait=document.querySelector('.hero-portrait');
+const mobileHero=matchMedia('(max-width: 650px)');
+function positionHeroPortrait(){
+ if(mobileHero.matches){
+  document.querySelector('.hero-bottom').insertBefore(heroPortrait,document.querySelector('.hero-actions'));
+ }else{
+  document.querySelector('.hero-copy').insertBefore(heroPortrait,document.querySelector('.hero h1'));
+ }
+}
+positionHeroPortrait();
+mobileHero.addEventListener('change',positionHeroPortrait);

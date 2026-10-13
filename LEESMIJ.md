@@ -1,5 +1,17 @@
 # EYE — Frontpage concept
 
+## Onderhoud van HTML en CSS
+
+De actieve HTML en CSS zijn geformatteerd. Merkkleuren, terugkerende radii, overgangsduren en de basisafstand tussen secties staan als ontwerpwaarden in `:root`. Navigatie, hero en referenties hebben elk één herkenbaar blok in `style.css`, inclusief de bijbehorende mediaqueries. De navigatiebalk, hero-container en hero-titel hebben elk één basisdefinitie met expliciete schermvarianten. De voorrang van concurrerende stijlen is behouden.
+
+De oorspronkelijke SVG's blijven inline, inclusief de pijlen en het geanimeerde logo. Ongebruikte selectors en declaraties die altijd door dezelfde selector onder dezelfde voorwaarden worden overschreven zijn verwijderd. Classes die door JavaScript worden toegevoegd blijven behouden. Herhaalde regels zijn alleen samengevoegd wanneer tussenliggende regels de voorrang niet veranderen.
+
+Cases gebruiken de bestaande achtergrondfoto met kleurlaag; de vier niet meer zichtbare schaduw-elementen en de oude pseudo-elementlaag zijn verwijderd. De semantische afbeeldingen en hun alt-teksten blijven aanwezig. WebP-afbeeldingen hebben expliciete bronafmetingen.
+
+De opschoning is vergeleken met de vorige versie op 390, 650, 768, 900, 1024 en 1440 pixels breed. Ook het mobiele menu, sluiten met Escape, compacte navigatie, scrollsecties, referentiewisseling en het uitklappen van lange citaten zijn gecontroleerd. De Backup-mappen vallen buiten het onderhoud van de actieve site.
+
+Het menu is ook met Tab en Escape gecontroleerd; na sluiten keert de focus terug naar de menuknop. De focusring op de lichte navigatie en in het menu gebruikt donkerblauw voor voldoende contrast. De afbeeldingen en console zijn lokaal gecontroleerd; dit is geen volledige toegankelijkheidsaudit of representatieve meting van de snelheid van de live website.
+
 Open `index.html` in je browser. Er is geen installatie nodig. Houd `index.html`, `style.css`, `script.js` en de map `assets` bij elkaar. De beelden en video zijn lokaal opgenomen, dus de presentatie werkt ook zonder internet. Externe project-, team- en contactlinks verwijzen naar de bestaande website of openen je mail-/telefoonprogramma.
 
 ## Ontwerprichting
