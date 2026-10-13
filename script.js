@@ -8,6 +8,76 @@ menu.addEventListener('close',()=>{document.body.classList.remove('menu-open');t
 const video = document.querySelector('#reel');
 const videoButton = document.querySelector('#video-toggle');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const footerConversation = document.querySelector('.footer');
+const footerEye = document.querySelector('.footer-brand-mark');
+const eyePointer = matchMedia('(hover: hover) and (pointer: fine)');
+if (footerConversation && footerEye) {
+  const eyeArea = footerEye.parentElement;
+  const eyeTracking = document.createElement('span');
+  eyeTracking.className = 'footer-eye-tracking';
+  eyeArea.append(eyeTracking);
+  eyeTracking.append(footerEye);
+  let eyeHovered = false;
+  let eyeAngle = 0;
+  let eyeTargetAngle = 0;
+  let eyeFrame = 0;
+  let eyeLastTime = 0;
+  const angleDifference = (target, current) => ((target - current + 540) % 360 + 360) % 360 - 180;
+  const renderEye = (time) => {
+    eyeFrame = 0;
+    const elapsed = eyeLastTime ? Math.min(64, time - eyeLastTime) : 16;
+    eyeLastTime = time;
+    const difference = angleDifference(eyeTargetAngle, eyeAngle);
+    eyeAngle += difference * (1 - Math.exp(-elapsed / 85));
+    eyeTracking.style.transform = `rotate(${eyeAngle}deg)`;
+    if (Math.abs(difference) > 0.05 && !eyeHovered) {
+      eyeFrame = requestAnimationFrame(renderEye);
+    } else {
+      eyeLastTime = 0;
+    }
+  };
+  const scheduleEye = () => {
+    if (!eyeFrame && !eyeHovered) eyeFrame = requestAnimationFrame(renderEye);
+  };
+  const resetEye = () => {
+    eyeTargetAngle = 0;
+    if (reduced.matches || !eyePointer.matches) {
+      cancelAnimationFrame(eyeFrame);
+      eyeFrame = 0;
+      eyeLastTime = 0;
+      eyeAngle = 0;
+      eyeTracking.style.transform = 'rotate(0deg)';
+    } else {
+      scheduleEye();
+    }
+  };
+  footerConversation.addEventListener('pointermove', (event) => {
+    if (reduced.matches || !eyePointer.matches || eyeHovered) return;
+    const bounds = eyeArea.getBoundingClientRect();
+    const dx = event.clientX - (bounds.left + bounds.width / 2);
+    const dy = event.clientY - (bounds.top + bounds.height / 2);
+    eyeTargetAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+    scheduleEye();
+  }, { passive: true });
+  const eyeHoverTargets = [eyeArea, footerConversation.querySelector('.footer-start')].filter(Boolean);
+  eyeHoverTargets.forEach((target) => {
+    target.addEventListener('pointerenter', () => {
+      eyeHovered = true;
+      cancelAnimationFrame(eyeFrame);
+      eyeFrame = 0;
+      eyeLastTime = 0;
+      eyeArea.classList.add('is-eye-hovered');
+    });
+    target.addEventListener('pointerleave', () => {
+      eyeHovered = false;
+      eyeArea.classList.remove('is-eye-hovered');
+      scheduleEye();
+    });
+  });
+  footerConversation.addEventListener('pointerleave', resetEye);
+  reduced.addEventListener('change', resetEye);
+  eyePointer.addEventListener('change', resetEye);
+}
 let manualPause = false;
 function videoState(){const paused=video.paused;videoButton.innerHTML=paused?'Afspelen <span>▶</span>':'Pauzeren <span>Ⅱ</span>';videoButton.setAttribute('aria-label',paused?'Projectvideo afspelen':'Projectvideo pauzeren');}
 video.addEventListener('play',videoState); video.addEventListener('pause',videoState);
@@ -167,45 +237,39 @@ if(reviewSection){
  const slides=[...reviewSection.querySelectorAll('.testimonial-slide')];
  const controls=reviewSection.querySelector('.testimonial-controls');
  const reviewStage=reviewSection.querySelector('.testimonial-stage');
- const mobileReviews=matchMedia('(max-width: 650px)');
  function positionReviewControls(){
-  if(mobileReviews.matches)reviewStage.append(controls);
-  else reviewStage.prepend(controls);
+  reviewStage.append(controls);
  }
- mobileReviews.addEventListener('change',positionReviewControls);
  let currentReview=0;
- function updateReviewExcerpt(){
-  const slide=slides[currentReview];
-  const text=slide.querySelector('blockquote');
-  const button=slide.querySelector('.review-read-more');
-  text.classList.add('review-excerpt');
-  const expanded=text.classList.contains('review-expanded');
-  text.classList.remove('review-expanded');
-  const lineHeight=parseFloat(getComputedStyle(text).lineHeight);
-  button.hidden=text.scrollHeight<=lineHeight*4+2;
-  if(expanded)text.classList.add('review-expanded');
- }
  slides.forEach(slide=>{
-  const button=slide.querySelector('.review-read-more');
-  button.addEventListener('click',()=>{
-   const expanded=button.getAttribute('aria-expanded')!=='true';
-   slide.querySelector('blockquote').classList.toggle('review-expanded',expanded);
-   button.setAttribute('aria-expanded',String(expanded));
-   button.textContent=expanded?'Lees minder':'Lees meer';
-  });
+  const person=slide.querySelector('.testimonial-person');
+  const company=person.querySelector('.testimonial-author span');
+  const heading=document.createElement('h3');
+  heading.className='review-company';
+  const author=person.querySelector('.testimonial-author');
+  const fullName=Array.from(author.childNodes).filter(node=>node.nodeType===Node.TEXT_NODE).map(node=>node.textContent).join(' ').trim();
+  const firstName=document.createElement('span');
+  firstName.className='review-first-name';
+  firstName.textContent=fullName.split(/\s+/)[0];
+  const companyName=document.createElement('span');
+  companyName.className='review-company-name';
+  companyName.textContent=company.textContent.trim();
+  heading.append(firstName,document.createTextNode(' van '),companyName);
+  slide.querySelector('h2').replaceWith(heading);
+  company.hidden=true;
+  const identity=document.createElement('div');
+  identity.className='review-identity';
+  identity.append(person.querySelector('.testimonial-photo'));
+  const quote=slide.querySelector('blockquote');
+  quote.textContent=quote.textContent.trim().replace(/^[“"]|[”"]$/g,'');
+  slide.prepend(identity);
+  person.remove();
  });
- addEventListener('resize',updateReviewExcerpt);
- if(document.fonts)document.fonts.ready.then(updateReviewExcerpt);
 
  function showReview(index){
   currentReview=(index+slides.length)%slides.length;
+  controls.querySelector('.review-count').textContent=`${String(currentReview+1).padStart(2,'0')} / ${slides.length}`;
   slides.forEach((slide,i)=>{slide.hidden=i!==currentReview;});
-  slides.forEach(slide=>{
-   slide.querySelector('blockquote').classList.remove('review-expanded');
-   const button=slide.querySelector('.review-read-more');
-   button.setAttribute('aria-expanded','false');button.textContent='Lees meer';
-  });
-  updateReviewExcerpt();
   positionReviewControls();
  }
  if(slides.length>1){
@@ -253,3 +317,23 @@ function positionHeroPortrait(){
 }
 positionHeroPortrait();
 mobileHero.addEventListener('change',positionHeroPortrait);
+// Give each logo row its own loop, preserving inaccessible duplicates.
+const logoSlider=document.querySelector('.eyee-logoslider-wrapper');
+if(logoSlider){
+ logoSlider.querySelectorAll('.marquee__group[aria-hidden]').forEach(group=>{
+  group.removeAttribute('inert');
+  group.querySelectorAll('a').forEach(link=>link.setAttribute('tabindex','-1'));
+ });
+ const secondMarquee=document.createElement('div');
+ secondMarquee.className='marquee marquee-reverse';
+ logoSlider.querySelectorAll('.marquee__group').forEach(group=>{
+  const secondGroup=document.createElement('div');
+  secondGroup.className='marquee__group';
+  if(group.hasAttribute('aria-hidden')){
+   secondGroup.setAttribute('aria-hidden','true');
+  }
+  secondGroup.append(group.querySelector('.r2'));
+  secondMarquee.append(secondGroup);
+ });
+ logoSlider.append(secondMarquee);
+}
