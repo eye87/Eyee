@@ -4810,6 +4810,32 @@ body.menu-open {
   .footer-section-content { padding: 4px 0 24px; }
 }
 .footer-section-toggle[hidden], .footer-section-content[hidden] { display: none; }
+/* A static, fully visible reel when scroll motion is disabled. */
+@media (prefers-reduced-motion: reduce) {
+  .work-reel .showreel-block .reel-track {
+    height: auto;
+    min-height: 0;
+    padding: 32px var(--pad);
+  }
+  .work-reel .showreel-block .reel-sticky {
+    position: relative;
+    top: auto;
+    padding-top: 0;
+  }
+  .work-reel .reel-frame {
+    width: 100% !important;
+    aspect-ratio: 16 / 9;
+    border-radius: 18px !important;
+  }
+  .work-reel .reel-frame video { object-fit: contain; }
+  .work-reel .video-toggle {
+    min-height: 44px;
+    padding: 12px 18px;
+    font-size: 14px;
+    right: 12px;
+    bottom: 12px;
+  }
+}
 @media (max-width: 650px) {
   .client-wall #client-title { text-align: center; margin-inline: auto; }
 }

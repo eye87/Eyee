@@ -121,10 +121,11 @@ if (footerConversation && footerEye) {
   eyePointer.addEventListener('change', resetEye);
 }
 let manualPause = false;
+let manualVideoPlay = false;
 function videoState(){const paused=video.paused;videoButton.innerHTML=paused?'Afspelen <span>▶</span>':'Pauzeren <span>Ⅱ</span>';videoButton.setAttribute('aria-label',paused?'Projectvideo afspelen':'Projectvideo pauzeren');}
 video.addEventListener('play',videoState); video.addEventListener('pause',videoState);
-videoButton.addEventListener('click',()=>{if(video.paused){manualPause=false;video.play().catch(()=>videoState());}else{manualPause=true;video.pause();}});
-new IntersectionObserver(entries=>{if(entries[0].isIntersecting&&!reduced.matches&&!manualPause){video.play().catch(()=>videoState());}else{video.pause();}},{threshold:.15}).observe(video);
+videoButton.addEventListener('click',()=>{if(video.paused){manualPause=false;manualVideoPlay=true;video.play().catch(()=>videoState());}else{manualPause=true;manualVideoPlay=false;video.pause();}});
+new IntersectionObserver(entries=>{if(!entries[0].isIntersecting){video.pause();}else if(!manualPause&&(!reduced.matches||manualVideoPlay)){video.play().catch(()=>videoState());}},{threshold:.15}).observe(video);
 const track=document.querySelector('.reel-track');const frame=document.querySelector('.reel-frame');let scheduled=false;
 function updateReel(){
   scheduled=false;
