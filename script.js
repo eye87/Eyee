@@ -264,6 +264,25 @@ function updatePageBackground(){
     const luminance=(red*.299+green*.587+blue*.114)/255;
     document.body.style.setProperty('--page-fg',luminance>.58?'#1b1c24':'#ffffff');
     document.body.style.setProperty('--page-accent',luminance>.58?'#3558fd':'#a8bcff');
+    // Safari's outer canvas follows the actual section at the top edge,
+    // not the next section that has already started its scroll transition.
+    const edgeSection=colorSections.find(section=>{
+      const rect=section.getBoundingClientRect();
+      return rect.top<=1 && rect.bottom>1;
+    });
+    let browserBackground=background;
+    if(edgeSection){
+      if(mobileCaseBackground.matches && (edgeSection.id==='werk' || edgeSection.id==='aanpak')){
+        browserBackground=document.body.style.getPropertyValue('--mobile-work-bg') || background;
+      } else if(edgeSection.classList.contains('faq-section')){
+        browserBackground='#f7f8fc';
+      } else if(edgeSection.classList.contains('testimonials')){
+        browserBackground='#ffffff';
+      } else if(edgeSection===footer){
+        browserBackground=footer.style.getPropertyValue('--footer-bg') || edgeSection.dataset.scrollBg;
+      }
+    }
+    document.documentElement.style.setProperty('--browser-bg',browserBackground);
   }
 }
 function schedulePageBackground(){

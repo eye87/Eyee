@@ -45,6 +45,7 @@
   box-sizing: border-box;
 }
 html {
+  background-color: var(--browser-bg, #000d49);
   scroll-behavior: smooth;
   scroll-padding-top: 100px;
 }
