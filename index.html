@@ -16,7 +16,7 @@
     />
     <link
       rel="stylesheet"
-      href="style.css?v=20261014-hero-video-clean"
+      href="style.css?v=20261014-desktop-footer-shared-width"
     />
   </head>
   <body>
@@ -205,8 +205,8 @@
           </div>
           <div class="hero-portrait">
             <picture class="hero-video-poster">
-              <source media="(max-width: 650px)" srcset="assets/hero-cyclist-mobile-poster.webp" />
-              <img src="assets/hero-cyclist-desktop-poster.webp" width="576" height="768" alt="Een fietser onderweg door de stad" fetchpriority="high" />
+              <source media="(max-width: 650px)" srcset="assets/eyee-showreel-hero-mobile-poster.jpg" />
+              <img src="assets/eyee-showreel-hero-desktop-poster.jpg" width="800" height="840" alt="Dronebeeld van de stad" fetchpriority="high" />
             </picture>
             <video id="hero-video" class="hero-video" muted loop playsinline preload="none" aria-hidden="true"></video>
           </div>
@@ -1244,10 +1244,11 @@
                   loop
                   playsinline
                   preload="metadata"
-                  poster="assets/poster.webp"
-                  aria-label="Showreel van projecten van Eyee"
+                  poster="assets/eyee-showreel-poster.jpg"
+                  aria-label="Showreel van Eyee met beelden van de stad, mensen, onderzoek en techniek"
                 >
-                  <source src="assets/reel.mp4" type="video/mp4" />
+                  <source src="assets/eyee-showreel-mobile.mp4" type="video/mp4" media="(max-width: 650px)" />
+                  <source src="assets/eyee-showreel-desktop.mp4" type="video/mp4" />
                 </video>
                 <div class="reel-shade"></div>
                 <button
@@ -1631,7 +1632,7 @@
       <section id="veelgestelde-vragen" class="faq-section section" data-scroll-bg="#ffffff" aria-labelledby="faq-title">
         <div class="faq-intro">
           <h2 id="faq-title">Goed om<br /><span>te weten.</span></h2>
-          <p>Van een eerste idee tot de stap na livegang. Hier vind je antwoorden op vragen die we vaak krijgen.</p>
+          <p><span class="faq-intro-desktop">Van een eerste idee tot de stap na livegang. Hier vind je antwoorden op vragen die we vaak krijgen.</span><span class="faq-intro-mobile">Vragen over je project of samenwerken met ons?</span></p>
           <a class="faq-contact-link" href="https://eye-entertainment.nl/contact/">Liever even overleggen?</a>
         </div>
         <div class="steps">
@@ -1705,6 +1706,7 @@
             <summary><h3>Hoe werken we samen?</h3><span class="detail-plus">+</span></summary>
             <div class="step-body"><p>Jullie kennen je organisatie en gebruikers, wij brengen onze expertise mee. Samen bespreken we de keuzes en toetsen we of de richting past. Hoe we afstemmen en wanneer jullie input nodig is, bepalen we aan de hand van het project.</p></div>
           </details>
+          <a class="faq-contact-link faq-contact-mobile" href="https://eye-entertainment.nl/contact/">Liever even overleggen?</a>
         </div>
       </section>
       <div class="footer-shell">
@@ -1743,7 +1745,7 @@
             </div>
           </div>
           <div class="footer-base footer-legal">
-            <span>© 2026, Eye Entertainment — Alle rechten voorbehouden</span>
+            <span class="footer-copyright"><span>© 2026 Eye Entertainment</span><span class="footer-copyright-separator"> — </span><span>Alle rechten voorbehouden</span></span>
             <div class="footer-policy-links">
               <a href="https://eye-entertainment.nl/algemene-voorwaarden/"
                 >Algemene voorwaarden</a
@@ -1798,6 +1800,6 @@
         </footer>
       </div>
     </main>
-    <script src="script.js?v=20261014-hero-video-clean"></script>
+    <script src="script.js?v=20261014-header-showreel"></script>
   </body>
 </html>

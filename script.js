@@ -317,7 +317,7 @@ function syncHeroVideo(){
     !reduced.matches && !navigator.connection?.saveData;
   if(mayPlay){
     if(!heroVideo.hasAttribute('src')){
-      heroVideo.src=heroVideoMobile.matches?'assets/hero-cyclist-mobile-full.mp4':'assets/hero-cyclist-desktop-full.mp4';
+      heroVideo.src=heroVideoMobile.matches?'assets/eyee-showreel-hero-mobile.mp4':'assets/eyee-showreel-hero-desktop.mp4';
     }
     heroVideo.muted=true;
     heroVideo.play().catch(()=>{});
