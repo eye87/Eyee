@@ -296,6 +296,13 @@ function updatePageBackground(){
         browserBackground=footer.style.getPropertyValue('--footer-bg') || edgeSection.dataset.scrollBg;
       }
     }
+    const legalBottom=document.querySelector('.footer-legal');
+    if(mobileCaseBackground.matches && legalBottom){
+      const legalRect=legalBottom.getBoundingClientRect();
+      if(legalRect.top<innerHeight && legalRect.bottom<=innerHeight+2){
+        browserBackground='#00072b';
+      }
+    }
     document.documentElement.style.setProperty('--browser-bg',browserBackground);
   }
 }
@@ -304,6 +311,8 @@ function schedulePageBackground(){
 }
 addEventListener('scroll',schedulePageBackground,{passive:true});
 addEventListener('resize',schedulePageBackground);
+window.visualViewport?.addEventListener('resize',schedulePageBackground);
+window.visualViewport?.addEventListener('scroll',schedulePageBackground);
 addEventListener('pageshow',updatePageBackground);
 updateCaseBackground();
 updatePageBackground();

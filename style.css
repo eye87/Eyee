@@ -2284,10 +2284,29 @@ body {
   background: #ffffff15;
   opacity: 1;
 }
+.footer-socials a[aria-label="Instagram"] { --social-icon: url("data:image/svg+xml,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20d%3D%22M10.0223%204.84375C12.8348%204.84375%2015.1563%207.16518%2015.1563%209.97768C15.1563%2012.8348%2012.8348%2015.1116%2010.0223%2015.1116C7.16518%2015.1116%204.88839%2012.8348%204.88839%209.97768C4.88839%207.16518%207.16518%204.84375%2010.0223%204.84375ZM10.0223%2013.3259C11.8527%2013.3259%2013.3259%2011.8527%2013.3259%209.97768C13.3259%208.14732%2011.8527%206.67411%2010.0223%206.67411C8.14732%206.67411%206.67411%208.14732%206.67411%209.97768C6.67411%2011.8527%208.19196%2013.3259%2010.0223%2013.3259ZM16.5402%204.66518C16.5402%205.33482%2016.0045%205.87054%2015.3348%205.87054C14.6652%205.87054%2014.1295%205.33482%2014.1295%204.66518C14.1295%203.99554%2014.6652%203.45982%2015.3348%203.45982C16.0045%203.45982%2016.5402%203.99554%2016.5402%204.66518ZM19.933%205.87054C20.0223%207.52232%2020.0223%2012.4777%2019.933%2014.1295C19.8438%2015.7366%2019.4866%2017.1205%2018.3259%2018.3259C17.1652%2019.4866%2015.7366%2019.8438%2014.1295%2019.933C12.4777%2020.0223%207.52232%2020.0223%205.87054%2019.933C4.26339%2019.8438%202.87946%2019.4866%201.67411%2018.3259C0.513393%2017.1205%200.15625%2015.7366%200.0669643%2014.1295C-0.0223214%2012.4777%20-0.0223214%207.52232%200.0669643%205.87054C0.15625%204.26339%200.513393%202.83482%201.67411%201.67411C2.87946%200.513393%204.26339%200.15625%205.87054%200.0669643C7.52232%20-0.0223214%2012.4777%20-0.0223214%2014.1295%200.0669643C15.7366%200.15625%2017.1652%200.513393%2018.3259%201.67411C19.4866%202.83482%2019.8438%204.26339%2019.933%205.87054ZM17.7902%2015.8705C18.3259%2014.5759%2018.192%2011.4509%2018.192%209.97768C18.192%208.54911%2018.3259%205.42411%2017.7902%204.08482C17.433%203.23661%2016.7634%202.52232%2015.9152%202.20982C14.5759%201.67411%2011.4509%201.80804%2010.0223%201.80804C8.54911%201.80804%205.42411%201.67411%204.12946%202.20982C3.23661%202.56696%202.56696%203.23661%202.20982%204.08482C1.67411%205.42411%201.80804%208.54911%201.80804%209.97768C1.80804%2011.4509%201.67411%2014.5759%202.20982%2015.8705C2.56696%2016.7634%203.23661%2017.433%204.12946%2017.7902C5.42411%2018.3259%208.54911%2018.192%2010.0223%2018.192C11.4509%2018.192%2014.5759%2018.3259%2015.9152%2017.7902C16.7634%2017.433%2017.4777%2016.7634%2017.7902%2015.8705Z%22%20fill%3D%22black%22%2F%3E%0A%3C%2Fsvg%3E"); }
+.footer-socials a[aria-label="Facebook"] { --social-icon: url("data:image/svg+xml,%3Csvg%20width%3D%2211%22%20height%3D%2220%22%20viewBox%3D%220%200%2011%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20d%3D%22M10.0391%2011.25H7.10938V20H3.20312V11.25H0V7.65625H3.20312V4.88281C3.20312%201.75781%205.07812%200%207.92969%200C9.29688%200%2010.7422%200.273438%2010.7422%200.273438V3.35938H9.14062C7.57812%203.35938%207.10938%204.29688%207.10938%205.3125V7.65625H10.5859L10.0391%2011.25Z%22%20fill%3D%22black%22%2F%3E%0A%3C%2Fsvg%3E"); }
+.footer-socials a[aria-label="LinkedIn"] { --social-icon: url("data:image/svg+xml,%3Csvg%20width%3D%2221%22%20height%3D%2220%22%20viewBox%3D%220%200%2021%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20d%3D%22M4.46985%2020H0.31289V6.63515H4.46985V20ZM2.36902%204.84721C1.07276%204.84721%200%203.72975%200%202.38879C0%200.556152%201.96673%20-0.606009%203.57588%200.33266C4.33575%200.734946%204.78274%201.53952%204.78274%202.38879C4.78274%203.72975%203.70998%204.84721%202.36902%204.84721ZM19.9802%2020H15.868V13.5187C15.868%2011.9543%2015.8233%209.98754%2013.6777%209.98754C11.5322%209.98754%2011.2193%2011.6414%2011.2193%2013.3846V20H7.06236V6.63515H11.0405V8.46779H11.0852C11.6663%207.43972%2013.0073%206.32226%2015.0187%206.32226C19.2204%206.32226%2020.0249%209.09356%2020.0249%2012.6694V20H19.9802Z%22%20fill%3D%22black%22%2F%3E%0A%3C%2Fsvg%3E"); }
+.footer-socials a[aria-label="Dribbble"] { --social-icon: url("data:image/svg+xml,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Cpath%20d%3D%22M10%2020C4.48636%2020%200%2015.5155%200%2010C0%204.48636%204.48636%200%2010%200C15.5145%200%2020%204.48636%2020%2010C20%2015.5155%2015.5145%2020%2010%2020ZM5.12545%2016.5127C6.52912%2017.5726%208.24115%2018.1438%2010%2018.1391C10.9773%2018.1391%2011.9364%2017.9655%2012.8527%2017.6227C12.4736%2015.5595%2011.9288%2013.5302%2011.2236%2011.5545C7.65182%2012.7136%205.81091%2015.3155%205.12545%2016.5127ZM13.0509%2011.1218C13.6881%2012.9528%2014.1963%2014.8262%2014.5718%2016.7282C15.4949%2016.1029%2016.2792%2015.2941%2016.8758%2014.3521C17.4724%2013.4102%2017.8684%2012.3554%2018.0391%2011.2536C17.0547%2011.0701%2016.0559%2010.9755%2015.0545%2010.9709C14.3838%2010.9696%2013.7139%2011.0201%2013.0509%2011.1218ZM1.85909%2010C1.85909%2011.9073%202.53273%2013.7527%203.75727%2015.2173C4.75364%2013.6618%206.87364%2011.0918%2010.5527%209.83909C10.3836%209.44545%2010.2073%209.05364%2010.0236%208.66909C6.85727%209.58091%203.61545%209.80727%201.86091%209.85818L1.85909%2010ZM15.1136%209.11546C16.0782%209.11546%2017.0864%209.20182%2018.1173%209.37545C17.9991%207.8031%2017.4219%206.30004%2016.4573%205.05273C15.3855%206.27545%2013.8255%207.28909%2011.8155%208.07C12.0055%208.48%2012.1964%208.91364%2012.3818%209.36182C13.2545%209.19727%2014.1727%209.11546%2015.1136%209.11546ZM6.14182%202.83727C5.15161%203.37022%204.2826%204.1026%203.58961%204.9882C2.89661%205.87381%202.39467%206.89343%202.11545%207.98273C3.67455%207.91636%206.45545%207.69727%209.14909%206.98C7.92091%204.79818%206.77182%203.47636%206.14182%202.83727ZM8.01636%202.10636C8.78727%202.96818%209.87182%204.36727%2010.9764%206.40091C12.8473%205.70364%2014.2509%204.79818%2015.1564%203.70909C13.7031%202.515%2011.8809%201.86155%2010%201.86C9.33273%201.86%208.66727%201.94273%208.01636%202.10636Z%22%20fill%3D%22black%22%2F%3E%0A%3C%2Fsvg%3E"); }
+.footer-socials a::before {
+  content: '';
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  -webkit-mask: var(--social-icon) center / contain no-repeat;
+  mask: var(--social-icon) center / contain no-repeat;
+  transition: background-color var(--duration-feedback) ease;
+}
+.footer-socials a img { display: none; }
+.footer .footer-socials a:hover,
+.footer .footer-socials a:focus-visible { background: transparent; opacity: 1; }
+.footer-socials a:hover::before,
+.footer-socials a:focus-visible::before { background: var(--color-blue); }
 @media (prefers-reduced-motion: reduce) {
   .footer-socials a {
     transition: none;
   }
+  .footer-socials a::before { transition: none; }
 }
 
 /* Three aligned zones: copyright, legal links, social icons. */
@@ -4812,6 +4831,33 @@ body.menu-open {
   width: fit-content;
   margin-bottom: 8px;
 }
+.footer .footer-directory a {
+  position: relative;
+  text-decoration: none;
+}
+.footer .footer-directory a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 1px;
+  background: var(--color-blue);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+.footer .footer-directory a:hover,
+.footer .footer-directory a:focus-visible {
+  color: #fff;
+  opacity: 1;
+  text-decoration: none;
+}
+.footer .footer-directory a:hover::after,
+.footer .footer-directory a:focus-visible::after { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) {
+  .footer .footer-directory a::after { transition: none; }
+}
 .footer-directory address { font-style: normal; }
 .footer-directory address + address { margin-top: 20px; }
 .footer-directory address strong { font-weight: 500; }
@@ -4822,6 +4868,9 @@ body.menu-open {
   min-height: 32px;
 }
 .footer-contact-link svg { flex: none; color: var(--color-blue-light); }
+.footer .footer-directory .footer-contact-link::after { left: 28px; }
+.footer .footer-contact-link:hover svg,
+.footer .footer-contact-link:focus-visible svg { color: var(--color-blue-light); }
 .footer-contact-link span { overflow-wrap: anywhere; }
 .footer::before { opacity: 0.35; }
 @media (max-width: 900px) {
@@ -5436,13 +5485,14 @@ body.menu-open {
   }
 }
 @media (min-width: 901px) {
+  .footer-directory { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .footer-conversation,
   .footer-directory {
-    width: 85%;
+    width: 90%;
     margin-inline: auto;
   }
   .footer-legal {
-    padding-inline: calc(7.5% + var(--pad) * 0.85);
+    padding-inline: calc(5% + var(--pad) * 0.9);
   }
 }
 .faq-section {
@@ -5769,6 +5819,8 @@ body.menu-open {
   }
   .case-showcase { padding-bottom: 32px; }
   .approach-blue { padding-top: 48px; }
+  .approach-blue { padding-bottom: 88px; }
+  .team-blue { padding-top: 88px; }
   .case-poster-grid .case-link-arrow,
   .case-poster-grid .case-all-arrow,
   .team-grid .case-link-arrow { display: none; }
@@ -5808,7 +5860,7 @@ body.menu-open {
   }
   .footer-legal {
     margin-top: 40px;
-    padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
   .footer-conversation { padding-bottom: 0; }
   .footer-directory { padding-top: 48px; }
@@ -5873,3 +5925,20 @@ body.menu-open {
     gap: 8px;
   }
 }
+
+/* Slightly tighter display headings across desktop and mobile. */
+h1,
+h2,
+.hero h1,
+.section-heading h2,
+.approach h2,
+.approach-blue .approach-heading h2,
+.team-blue .section-heading h2,
+.client-wall h2,
+.faq-intro h2,
+.footer-conversation-title,
+.case-showcase .case-mobile-title {
+  line-height: 1.02;
+}
+.testimonials .testimonial-slide > h2,
+.testimonial-story h2 { line-height: 1.05; }
