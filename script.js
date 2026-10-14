@@ -1,3 +1,13 @@
+const isPageReload = performance.getEntriesByType('navigation')[0]?.type === 'reload';
+if (isPageReload) {
+  history.scrollRestoration = 'manual';
+  if (location.hash) history.replaceState(history.state, '', location.pathname + location.search);
+  const resetReloadPosition = () => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  };
+  addEventListener('pageshow', resetReloadPosition, { once: true });
+}
 const menu = document.querySelector('#menu');
 const toggle = document.querySelector('.menu-toggle');
 toggle.addEventListener('click', () => { menu.showModal(); document.body.classList.add('menu-open'); toggle.setAttribute('aria-expanded','true'); });
@@ -210,11 +220,11 @@ function updatePageBackground(){
   const footer=document.querySelector('.footer[data-scroll-bg]');
   if(footer){
     const footerTop=footer.getBoundingClientRect().top;
-    const footerFadeStart=innerHeight*.72;
+    const footerFadeStart=innerHeight*1.14;
     // Finish by mid-viewport, or by the maximum reachable scroll position.
     const maxScroll=Math.max(0,document.documentElement.scrollHeight-innerHeight);
     const footerTopAtEnd=footerTop-(maxScroll-scrollY);
-    const footerFadeEnd=Math.max(innerHeight*.3,footerTopAtEnd);
+    const footerFadeEnd=Math.max(innerHeight*.66,footerTopAtEnd);
     const progress=Math.max(0,Math.min(1,(footerFadeStart-footerTop)/Math.max(1,footerFadeStart-footerFadeEnd)));
     const blend=reduced.matches?(progress>0?1:0):progress*progress*(3-2*progress);
     const channel=(from,to)=>Math.round(from+(to-from)*blend);
@@ -225,12 +235,32 @@ function updatePageBackground(){
     if(progress>0)active=footer;
   }
   if(active){
-    const background=active.dataset.scrollBg;
-    document.body.style.setProperty('--page-bg',background);
+    let background=active.dataset.scrollBg;
     const value=background.slice(1);
-    const red=parseInt(value.slice(0,2),16);
-    const green=parseInt(value.slice(2,4),16);
-    const blue=parseInt(value.slice(4,6),16);
+    let red=parseInt(value.slice(0,2),16);
+    let green=parseInt(value.slice(2,4),16);
+    let blue=parseInt(value.slice(4,6),16);
+    if (!mobileCaseBackground.matches && (active === caseSection || active.id === 'aanpak')) {
+      const titleTop = document.querySelector('#aanpak .approach-heading').getBoundingClientRect().top;
+      const progress = Math.max(0, Math.min(1, (innerHeight * 1.08 - titleTop) / (innerHeight * 0.48)));
+      const blend = reduced.matches ? (progress >= 0.5 ? 1 : 0) : progress * progress * (3 - 2 * progress);
+      red = Math.round(255 * blend);
+      green = Math.round(13 + 242 * blend);
+      blue = Math.round(73 + 182 * blend);
+      background = `rgb(${red},${green},${blue})`;
+    }
+    if (active.id === 'aanpak' || active.id === 'over') {
+      const teamTitleTop = document.querySelector('#over .section-heading').getBoundingClientRect().top;
+      const progress = Math.max(0, Math.min(1, (innerHeight * 0.88 - teamTitleTop) / (innerHeight * 0.45)));
+      if (progress > 0) {
+        const blend = reduced.matches ? 1 : progress * progress * (3 - 2 * progress);
+        red = Math.round(255 * (1 - blend));
+        green = Math.round(255 - 242 * blend);
+        blue = Math.round(255 - 182 * blend);
+        background = `rgb(${red},${green},${blue})`;
+      }
+    }
+    document.body.style.setProperty('--page-bg',background);
     const luminance=(red*.299+green*.587+blue*.114)/255;
     document.body.style.setProperty('--page-fg',luminance>.58?'#1b1c24':'#ffffff');
     document.body.style.setProperty('--page-accent',luminance>.58?'#3558fd':'#a8bcff');
