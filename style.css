@@ -1884,6 +1884,7 @@ body {
 .eyee-logoslider-wrapper .marquee .logo-img.first {
   opacity: 1;
   z-index: 1;
+  filter: url("#client-logo-tint");
 }
 
 .eyee-logoslider-wrapper .marquee .logo-img.second {
@@ -2795,6 +2796,15 @@ body {
 }
 
 /* A clear directional cue when a case is interactive. */
+.case-poster > .case-client-mark,
+.case-poster > .case-client-mark.case-client-mfp {
+  width: 140px;
+}
+.case-poster > .case-client-mark.case-client-mfp img,
+.case-yesty > .case-client-mark img {
+  height: 28px;
+  max-width: 140px;
+}
 .case-link-arrow {
   position: absolute;
   top: 24px;
@@ -5259,8 +5269,8 @@ body.menu-open {
   --gap: 48px;
   margin-top: 40px;
   gap: 8px;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
 }
 .eyee-logoslider-wrapper .marquee__group {
   animation-duration: 70s;
@@ -5270,7 +5280,7 @@ body.menu-open {
 }
 .eyee-logoslider-wrapper .marquee a.logo-item {
   width: 224px;
-  height: 112px;
+  height: 88px;
   background: transparent;
   border-radius: 0;
 }
@@ -5278,6 +5288,12 @@ body.menu-open {
   max-width: 90%;
   scale: 1.1;
 }
+.eyee-logoslider-wrapper .marquee .logo-img[alt="Symphony Travel"] {
+  height: 24px !important;
+  max-width: 96%;
+}
+.eyee-logoslider-wrapper .marquee .logo-img[alt="Spijs"] { scale: 0.95; }
+.eyee-logoslider-wrapper .marquee .logo-img[alt="The Indian Maharadja"] { scale: 1; }
 .eyee-logoslider-wrapper:hover .marquee__group,
 .eyee-logoslider-wrapper:focus-within .marquee__group {
   animation-play-state: paused;
@@ -5298,6 +5314,7 @@ body.menu-open {
     transform: none;
     scale: 1;
   }
+  .eyee-logoslider-wrapper .marquee .logo-img[alt="Spijs"] { scale: 0.9; }
 }
 @media (prefers-reduced-motion: reduce) {
   .client-wall .eyee-logoslider-wrapper {
@@ -5310,6 +5327,25 @@ body.menu-open {
 }
 
 /* Mobile composition: keep the existing visual language, with room for content. */
+.client-wall.client-strip {
+  min-height: 0;
+  padding-block: 0 64px;
+  background: var(--color-navy);
+}
+@media (min-width: 901px) {
+  .hero-copy {
+    min-height: calc(100svh - 64px);
+    padding-bottom: 40px;
+  }
+}
+.client-strip .eyee-logoslider-wrapper { margin-top: 0; }
+.client-strip .eyee-logoslider-wrapper .logo-img.first {
+  filter: brightness(0) invert(1);
+  opacity: 0.65;
+}
+.client-strip .eyee-logoslider-wrapper .marquee a.logo-item:hover .logo-img.first,
+.client-strip .eyee-logoslider-wrapper .marquee a.logo-item:focus-visible .logo-img.first { opacity: 1; }
+.client-strip .eyee-logoslider-wrapper .logo-img.second { display: none; }
 @media (max-width: 650px) {
   .header.is-compact {
     width: calc(100% - 32px);
@@ -5318,7 +5354,7 @@ body.menu-open {
   .hero-copy {
     min-height: 0;
     padding-top: 104px;
-    padding-bottom: 48px;
+    padding-bottom: 32px;
   }
   .hero h1 {
     font-size: clamp(36px, 10.4vw, 48px);

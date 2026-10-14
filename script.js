@@ -360,23 +360,19 @@ function positionHeroPortrait(){
 }
 positionHeroPortrait();
 mobileHero.addEventListener('change',positionHeroPortrait);
-// Give each logo row its own loop, preserving inaccessible duplicates.
+// One continuous client row, preserving inaccessible duplicates.
 const logoSlider=document.querySelector('.eyee-logoslider-wrapper');
 if(logoSlider){
  logoSlider.querySelectorAll('.marquee__group[aria-hidden]').forEach(group=>{
   group.removeAttribute('inert');
   group.querySelectorAll('a').forEach(link=>link.setAttribute('tabindex','-1'));
  });
- const secondMarquee=document.createElement('div');
- secondMarquee.className='marquee marquee-reverse';
  logoSlider.querySelectorAll('.marquee__group').forEach(group=>{
-  const secondGroup=document.createElement('div');
-  secondGroup.className='marquee__group';
-  if(group.hasAttribute('aria-hidden')){
-   secondGroup.setAttribute('aria-hidden','true');
+  const firstRow=group.querySelector('.r1');
+  const secondRow=group.querySelector('.r2');
+  if(firstRow && secondRow){
+   firstRow.append(...secondRow.children);
+   secondRow.remove();
   }
-  secondGroup.append(group.querySelector('.r2'));
-  secondMarquee.append(secondGroup);
  });
- logoSlider.append(secondMarquee);
 }
