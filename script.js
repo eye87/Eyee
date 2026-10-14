@@ -299,8 +299,14 @@ function updatePageBackground(){
     const legalBottom=document.querySelector('.footer-legal');
     if(mobileCaseBackground.matches && legalBottom){
       const legalRect=legalBottom.getBoundingClientRect();
-      if(legalRect.top<innerHeight && legalRect.bottom<=innerHeight+2){
+      const visibleBottom=window.visualViewport
+        ? window.visualViewport.offsetTop+window.visualViewport.height
+        : innerHeight;
+      if(legalRect.top<visibleBottom && legalRect.bottom>0){
         browserBackground='#00072b';
+        // iPhone Safari may sample the body for its lower safe-area fill.
+        // Match both canvases as soon as the dark legal band is visible.
+        document.body.style.setProperty('--page-bg',browserBackground);
       }
     }
     document.documentElement.style.setProperty('--browser-bg',browserBackground);
