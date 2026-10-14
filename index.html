@@ -16,7 +16,7 @@
     />
     <link
       rel="stylesheet"
-      href="style.css?v=20261014-footer-corner"
+      href="style.css?v=20261014-hero-video-clean"
     />
   </head>
   <body>
@@ -203,44 +203,12 @@
             <span class="shape-disc"></span><span class="shape-dot"></span
             ><span class="shape-bottom"></span>
           </div>
-          <div class="hero-portrait" aria-label="Mensen in het dagelijks leven">
-            <img
-              class="portrait-slide is-active"
-              src="assets/banner-mensen-1.webp"
-              width="1200"
-              height="1200"
-              alt="Twee mensen op een bankje aan het water"
-              style="object-position: 60% 65%"
-              fetchpriority="high"
-            /><img
-              class="portrait-slide"
-              src="assets/banner-mensen-2.webp"
-              width="1200"
-              height="1200"
-              alt="Mensen onderweg bij het water"
-              style="object-position: 60% 50%"
-            /><img
-              class="portrait-slide"
-              src="assets/banner-mensen-4.webp"
-              width="1200"
-              height="1200"
-              alt="Mensen werken op laptops in een café"
-              style="object-position: 60% 50%"
-            /><img
-              class="portrait-slide"
-              src="assets/banner-mensen-5.webp"
-              width="1200"
-              height="1200"
-              alt="Lachende man buiten in de zon"
-              style="object-position: 52% 42%"
-            /><img
-              class="portrait-slide"
-              src="assets/banner-mensen-6.webp"
-              width="1200"
-              height="1200"
-              alt="Twee mannen in gesprek met koffie op een terras"
-              style="object-position: 50% 50%"
-            />
+          <div class="hero-portrait">
+            <picture class="hero-video-poster">
+              <source media="(max-width: 650px)" srcset="assets/hero-cyclist-mobile-poster.webp" />
+              <img src="assets/hero-cyclist-desktop-poster.webp" width="576" height="768" alt="Een fietser onderweg door de stad" fetchpriority="high" />
+            </picture>
+            <video id="hero-video" class="hero-video" muted loop playsinline preload="none" aria-hidden="true"></video>
           </div>
           <h1 id="hero-title">Digitaal begint<br />bij <em>mensen.</em></h1>
           <div class="hero-bottom">
@@ -1746,7 +1714,7 @@
               <h2 class="footer-conversation-title">Wat gaan we<br /><span>samen maken?</span></h2>
               <a class="footer-start" href="mailto:info@eyeentertainment.nl">Laten we kennismaken<span class="footer-start-arrow" aria-hidden="true"><svg width="18" height="12" viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 8h20M15 2l6 6-6 6"/></svg></span></a>
             </div>
-            <div class="footer-brand-art" aria-hidden="true"><svg class="footer-brand-mark" viewBox="6 6 29 29" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M9.51439 10.8486C13.2551 7.12958 17.5127 5.4933 22.5822 6.22587C26.7355 6.82609 30.0108 8.91113 32.4223 12.3533C32.749 12.8196 32.5829 13.227 31.9892 13.418C30.5887 13.8686 29.6257 14.8354 28.8642 16.0403C27.8134 17.7027 27.5132 19.5148 28.0193 21.4101C28.6881 23.9138 30.2279 25.6642 32.778 26.4289C33.4064 26.6173 33.5839 26.9881 33.2454 27.5502C31.8733 29.8279 30.118 31.7046 27.7534 33.0201C24.336 34.9211 20.72 35.3688 16.9498 34.4121C13.9233 33.6442 11.3914 32.0325 9.37889 29.5688C6.7812 26.3884 5.79259 22.7843 6.13658 18.7898C6.32133 16.6434 7.01391 14.6473 8.17219 12.8304C8.64339 12.0914 9.15447 11.3779 9.51439 10.8486Z"/></svg></div>
+            <div class="footer-brand-art" aria-hidden="true"><svg class="footer-brand-mark" viewBox="0 0 146 156" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M93.2581 1.48611C115.434 5.8166 132.435 17.9065 144.379 37.0722C145.997 39.6687 144.979 41.8177 141.726 42.6886C134.052 44.7431 128.577 49.6917 124.114 55.9754C117.957 64.6447 115.795 74.3188 117.948 84.6543C120.793 98.3074 128.554 108.136 142.05 112.928C145.376 114.108 146.219 116.151 144.228 119.087C136.156 130.983 126.142 140.62 113.017 147.074C94.0486 156.401 74.4491 157.853 54.4436 151.705C38.384 146.771 25.2408 137.426 15.1506 123.632C2.12646 105.826 -2.10858 86.1648 0.947119 64.7557C2.5886 53.2521 6.91835 42.6913 13.7009 33.2187C31.7036 8.07979 62.419 -4.53585 93.2581 1.48611Z"/></svg></div>
           </div>
           <div class="footer-directory">
             <nav aria-label="Diensten">
@@ -1830,6 +1798,6 @@
         </footer>
       </div>
     </main>
-    <script src="script.js?v=20261014-safari-canvas"></script>
+    <script src="script.js?v=20261014-hero-video-clean"></script>
   </body>
 </html>

@@ -845,7 +845,7 @@ body {
   min-height: 500px;
   overflow: hidden;
   border-radius: var(--radius-image);
-  background: #3d3150;
+  background: var(--color-blue-light);
   color: #fff;
   isolation: isolate;
 }
@@ -1769,6 +1769,35 @@ body {
 }
 .work-reel .reel-frame {
   box-shadow: none;
+}
+@media (max-width: 650px) {
+  .section.team-blue {
+    padding-bottom: 24px;
+  }
+}
+/* De reel groeit op mobiel van kaart naar schermvullend beeld en blijft even staan. */
+@media (max-width: 650px) and (prefers-reduced-motion: no-preference) {
+  .work-reel,
+  .work-reel .showreel-block {
+    overflow: visible;
+  }
+  .work-reel .showreel-block .reel-track {
+    height: 235vh;
+    height: 235svh;
+    min-height: 0;
+    padding: 0;
+  }
+  .work-reel .showreel-block .reel-sticky {
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    padding: 0;
+    justify-content: center;
+  }
+  .work-reel .reel-frame {
+    flex: none;
+    max-width: none;
+  }
 }
 
 /* Full client stories, with a short quotation as the editorial headline. */
@@ -3865,7 +3894,7 @@ body.menu-open {
 .hero-portrait {
   position: absolute;
   overflow: hidden;
-  background: #8946b6;
+  background: var(--color-blue-light);
   z-index: 0;
   isolation: isolate;
 }
@@ -3883,6 +3912,19 @@ body.menu-open {
 .hero-portrait .portrait-slide.is-active {
   opacity: 1;
 }
+.hero-video-poster,
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.hero-video-poster img { width: 100%; height: 100%; object-fit: cover; }
+.hero-video { opacity: 0; }
+.has-video-frame .hero-video { opacity: 1; }
+.has-video-frame .hero-video-poster { visibility: hidden; }
 .hero-bottom {
   z-index: 1;
 }
@@ -4677,7 +4719,7 @@ body.menu-open {
 .footer-brand-mark {
   display: block;
   width: clamp(160px, 19vw, 280px);
-  aspect-ratio: 1;
+  aspect-ratio: 146 / 156;
   color: var(--color-blue-light);
   overflow: visible;
   transform-origin: center;

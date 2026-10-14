@@ -139,11 +139,25 @@ new IntersectionObserver(entries=>{if(!entries[0].isIntersecting){video.pause();
 const track=document.querySelector('.reel-track');const frame=document.querySelector('.reel-frame');let scheduled=false;
 function updateReel(){
   scheduled=false;
-  if(reduced.matches){frame.style.width='100%';frame.style.setProperty('--reel-radius','0px');return;}
+  if(reduced.matches){frame.style.width='100%';frame.style.height='';frame.style.transform='';frame.style.setProperty('--reel-radius','0px');return;}
   const rect=track.getBoundingClientRect();
+  if(innerWidth<=650){
+    const viewport=track.querySelector('.reel-sticky').getBoundingClientRect().height || innerHeight;
+    const clamp=value=>Math.max(0,Math.min(1,value));
+    const widthProgress=clamp((viewport*.6-rect.top)/(viewport*.7));
+    const fillProgress=clamp((-rect.top-viewport*.1)/(viewport*.55));
+    const width=70+30*widthProgress;
+    const videoHeight=rect.width*width/100*9/16;
+    frame.style.width=`${width}%`;
+    frame.style.height=`${videoHeight+(viewport-videoHeight)*fillProgress}px`;
+    frame.style.transform=`translateY(${-viewport*.18*(1-fillProgress)}px)`;
+    frame.style.setProperty('--reel-radius',`${18*(1-widthProgress)}px`);
+    return;
+  }
+  frame.style.height='';
+  frame.style.transform='';
   const progress=Math.max(0,Math.min(1,(innerHeight*.62-rect.top)/Math.max(280,innerHeight*.75)));
-  const small=innerWidth<=650;
-  const start=small?70:46;
+  const start=46;
   const end=100;
   frame.style.width=`${start+(end-start)*progress}%`;
   frame.style.setProperty('--reel-radius',`${18*(1-progress)}px`);
@@ -294,15 +308,42 @@ addEventListener('pageshow',updatePageBackground);
 updateCaseBackground();
 updatePageBackground();
 
-// Tijdelijke portretselectie: vervang de afbeeldingen in de HTML.
-const portraits=[...document.querySelectorAll('.portrait-slide')];
-let portraitIndex=0;
-setInterval(()=>{
-  if(reduced.matches || document.hidden || !portraits.length) return;
-  portraits[portraitIndex].classList.remove('is-active');
-  portraitIndex=(portraitIndex+1)%portraits.length;
-  portraits[portraitIndex].classList.add('is-active');
-},5500);
+// Load just one responsive video; keep the poster if autoplay is unavailable.
+const heroVideo=document.querySelector('#hero-video');
+const heroVideoMobile=matchMedia('(max-width: 650px)');
+let heroVideoInView=true;
+function syncHeroVideo(){
+  const mayPlay=heroVideoInView && !document.hidden &&
+    !reduced.matches && !navigator.connection?.saveData;
+  if(mayPlay){
+    if(!heroVideo.hasAttribute('src')){
+      heroVideo.src=heroVideoMobile.matches?'assets/hero-cyclist-mobile-full.mp4':'assets/hero-cyclist-desktop-full.mp4';
+    }
+    heroVideo.muted=true;
+    heroVideo.play().catch(()=>{});
+  }else heroVideo.pause();
+}
+heroVideo.addEventListener('playing',()=>{
+  heroVideo.parentElement.classList.add('has-video-frame');
+});
+heroVideo.addEventListener('error',()=>{
+  heroVideo.parentElement.classList.remove('has-video-frame');
+});
+heroVideoMobile.addEventListener('change',()=>{
+  heroVideo.pause();
+  heroVideo.removeAttribute('src');
+  heroVideo.load();
+  heroVideo.parentElement.classList.remove('has-video-frame');
+  syncHeroVideo();
+});
+reduced.addEventListener('change',()=>{
+  syncHeroVideo();
+});
+document.addEventListener('visibilitychange',syncHeroVideo);
+new IntersectionObserver(entries=>{
+  heroVideoInView=entries[0].isIntersecting;
+  syncHeroVideo();
+},{threshold:0.05}).observe(heroVideo.parentElement);
 
 // Laat de cases trapsgewijs verschijnen zodra het projectoverzicht in beeld komt.
 const casePosters=[...document.querySelectorAll('.case-poster')];
