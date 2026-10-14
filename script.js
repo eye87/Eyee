@@ -176,9 +176,26 @@ addEventListener('pageshow',updateHeader);
 updateHeader();
 
 const colorSections=[...document.querySelectorAll('[data-scroll-bg]')];
+const mobileCaseBackground = matchMedia('(max-width: 650px)');
+const caseSection = document.querySelector('#werk');
+const desktopCaseBackground = caseSection.dataset.scrollBg;
+function updateCaseBackground(){
+  caseSection.dataset.scrollBg = mobileCaseBackground.matches ? '#000d49' : desktopCaseBackground;
+  schedulePageBackground();
+}
+mobileCaseBackground.addEventListener('change', updateCaseBackground);
 let backgroundTicking=false;
 function updatePageBackground(){
   backgroundTicking=false;
+  if (mobileCaseBackground.matches) {
+    const approachTop = document.querySelector('#aanpak').getBoundingClientRect().top;
+    const progress = Math.max(0, Math.min(1, (innerHeight * 0.85 - approachTop) / (innerHeight * 0.4)));
+    const blend = reduced.matches ? (progress >= 0.5 ? 1 : 0) : progress * progress * (3 - 2 * progress);
+    const mix = (from, to) => Math.round(from + (to - from) * blend);
+    document.body.style.setProperty('--mobile-work-bg', `rgb(${mix(0,255)},${mix(13,255)},${mix(73,255)})`);
+    document.body.style.setProperty('--mobile-work-ink', blend > 0.5 ? '#000d49' : '#fff');
+    document.body.style.setProperty('--mobile-work-accent', blend > 0.5 ? '#3558fd' : '#a8bcff');
+  }
   const focusY=innerHeight*.18;
   let active=colorSections[0];
   let nearest=Infinity;
@@ -216,6 +233,7 @@ function updatePageBackground(){
     const blue=parseInt(value.slice(4,6),16);
     const luminance=(red*.299+green*.587+blue*.114)/255;
     document.body.style.setProperty('--page-fg',luminance>.58?'#1b1c24':'#ffffff');
+    document.body.style.setProperty('--page-accent',luminance>.58?'#3558fd':'#a8bcff');
   }
 }
 function schedulePageBackground(){
@@ -224,6 +242,7 @@ function schedulePageBackground(){
 addEventListener('scroll',schedulePageBackground,{passive:true});
 addEventListener('resize',schedulePageBackground);
 addEventListener('pageshow',updatePageBackground);
+updateCaseBackground();
 updatePageBackground();
 
 // Tijdelijke portretselectie: vervang de afbeeldingen in de HTML.
@@ -352,11 +371,7 @@ document.querySelector('.header .brand').addEventListener('click',event=>{
 const heroPortrait=document.querySelector('.hero-portrait');
 const mobileHero=matchMedia('(max-width: 650px)');
 function positionHeroPortrait(){
- if(mobileHero.matches){
-  document.querySelector('.hero-bottom').insertBefore(heroPortrait,document.querySelector('.hero-actions'));
- }else{
-  document.querySelector('.hero-copy').insertBefore(heroPortrait,document.querySelector('.hero h1'));
- }
+ document.querySelector('.hero-copy').insertBefore(heroPortrait,document.querySelector('.hero h1'));
 }
 positionHeroPortrait();
 mobileHero.addEventListener('change',positionHeroPortrait);
