@@ -5749,12 +5749,27 @@ body.menu-open {
   content: '';
   position: absolute;
   inset: -2px;
+  z-index: 1;
   background: rgba(0, 13, 73, 0.72);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.35s ease;
 }
-.case-all-card > span { position: relative; z-index: 1; }
+.case-all-card > span { position: relative; z-index: 2; }
+.case-all-brand-shape {
+  position: absolute;
+  z-index: 0;
+  top: -6%;
+  right: -30%;
+  width: 115%;
+  max-width: none;
+  height: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.09;
+  transform: rotate(-15deg);
+  pointer-events: none;
+  user-select: none;
+}
 .case-all-title-arrow {
   flex: 0 0 18px;
   width: 18px;
@@ -6261,6 +6276,37 @@ h2,
 /* Use the hero's established desktop alignment as the shared page gutter. */
 @media (min-width: 1101px) {
   :root { --pad: var(--hero-align); }
+}
+
+/* Wide screens keep the 1680px hero composition; only the canvas expands. */
+@media (min-width: 1441px) {
+  .hero-copy {
+    min-height: 0;
+    padding-bottom: 96px;
+  }
+}
+@media (min-width: 1681px) {
+  .hero-copy {
+    max-width: 1680px;
+    margin-inline: auto;
+    padding-left: 186px;
+    padding-right: 160px;
+  }
+  .hero h1 { max-width: 732px; }
+}
+@media (min-width: 1441px) {
+  .hero h1 {
+    font-size: min(6vw, 100px);
+    max-width: min(732px, calc(min(100vw, 1680px) - min(var(--hero-align), 186px) - min(46vw, 730px) - 32px));
+  }
+}
+@media (min-width: 1101px) {
+  .client-strip .eyee-logoslider-wrapper {
+    width: min(100vw, 1680px);
+    margin-inline: calc((100% - min(100vw, 1680px)) / 2);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  }
 }
 
 /* Intrinsic logo widths: equal gaps between artwork, not equal empty slots. */
