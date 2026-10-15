@@ -17,7 +17,17 @@ menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
 menu.addEventListener('close',()=>{document.body.classList.remove('menu-open');toggle.setAttribute('aria-expanded','false');toggle.focus({preventScroll:true});});
 const video = document.querySelector('#reel');
 const videoButton = document.querySelector('#video-toggle');
-const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const systemReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const reduced = new EventTarget();
+Object.defineProperty(reduced, 'matches', {get: () => systemReducedMotion.matches || document.documentElement.hasAttribute('data-a11y-motion')});
+let lastReducedMotion = reduced.matches;
+function notifyMotionPreference() {
+  if (lastReducedMotion === reduced.matches) return;
+  lastReducedMotion = reduced.matches;
+  reduced.dispatchEvent(new Event('change'));
+}
+systemReducedMotion.addEventListener('change', notifyMotionPreference);
+document.addEventListener('eyeeaccessibilitychange', notifyMotionPreference);
 const footerDirectory = document.querySelector('.footer-directory');
 if (footerDirectory) {
   const mobileFooter = matchMedia('(max-width: 650px)');
@@ -132,8 +142,9 @@ if (footerConversation && footerEye) {
 }
 let manualPause = false;
 let manualVideoPlay = false;
-function videoState(){const paused=video.paused;videoButton.dataset.paused=String(paused);videoButton.setAttribute('aria-label',paused?'Projectvideo afspelen':'Projectvideo pauzeren');}
+function videoState(){const paused=video.paused;videoButton.dataset.paused=String(paused);const english=document.documentElement.lang==='en';videoButton.setAttribute('aria-label',english?(paused?'Play project video':'Pause project video'):(paused?'Projectvideo afspelen':'Projectvideo pauzeren'));}
 video.addEventListener('play',videoState); video.addEventListener('pause',videoState);
+document.addEventListener('eyeelanguagechange',videoState);
 videoState();
 videoButton.addEventListener('click',()=>{if(video.paused){manualPause=false;manualVideoPlay=true;video.play().catch(()=>videoState());}else{manualPause=true;manualVideoPlay=false;video.pause();}});
 new IntersectionObserver(entries=>{if(!entries[0].isIntersecting){video.pause();}else if(!manualPause&&(!reduced.matches||manualVideoPlay)){video.play().catch(()=>videoState());}},{threshold:.15}).observe(video);
@@ -562,7 +573,7 @@ if(logoSlider){
   showTimer=setTimeout(()=>{
    activeLogo=link;
    tipTitle.textContent=name;
-   tipDescription.textContent=clientNotes[name];
+   tipDescription.textContent=window.EyeeI18n?.translateClientNote(name) || clientNotes[name];
    tip.hidden=false;
    link.setAttribute('aria-describedby',tip.id);
    logoSlider.classList.add('has-client-note');
@@ -590,6 +601,12 @@ if(logoSlider){
  });
  tip.addEventListener('pointerenter',()=>clearTimeout(hideTimer));
  tip.addEventListener('pointerleave',scheduleHideClientNote);
+ document.addEventListener('eyeelanguagechange',()=>{
+  if(!activeLogo || tip.hidden)return;
+  const name=activeLogo.querySelector('img[alt]')?.alt;
+  tipDescription.textContent=window.EyeeI18n?.translateClientNote(name) || clientNotes[name];
+  positionClientNote();
+ });
  document.addEventListener('keydown',event=>{
   if(event.key==='Escape')hideClientNote();
  });
