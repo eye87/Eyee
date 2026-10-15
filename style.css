@@ -4886,6 +4886,7 @@ body.menu-open {
   grid-template-columns: 18px minmax(0, 1fr);
   align-items: start;
   gap: 10px;
+  line-height: 1.75;
 }
 .footer-directory .footer-location svg {
   display: block;
@@ -4894,22 +4895,24 @@ body.menu-open {
 }
 .footer-directory .footer-location strong {
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .footer-directory nav a {
   display: grid;
   grid-template-columns: 8px minmax(0, 1fr);
   align-items: start;
   column-gap: 10px;
+  margin-bottom: 12px;
 }
 .footer-directory nav a::before {
   content: '';
   display: block;
-  width: 6px;
-  height: 6px;
-  margin-top: 8px;
-  border-top: 1.5px solid var(--color-blue-light);
-  border-right: 1.5px solid var(--color-blue-light);
+  width: 5px;
+  height: 5px;
+  margin-top: 9px;
+  border-top: 1px solid var(--color-blue-light);
+  border-right: 1px solid var(--color-blue-light);
+  opacity: 0.75;
   transform: rotate(45deg);
   pointer-events: none;
 }
@@ -5592,8 +5595,12 @@ body.menu-open {
     margin-inline: auto;
   }
   .footer-legal {
-    padding-inline: calc(5% + var(--pad) * 0.9);
+    padding-inline: calc(5vw + var(--pad) * 0.9);
   }
+}
+@media (min-width: 1001px) {
+  /* Align the visible icon edge, allowing for its 44px touch target. */
+  .footer-legal .footer-socials { margin-right: -11px; }
 }
 .faq-section {
   background: linear-gradient(to bottom, #fff 0, #f7f8fc 100px, #f7f8fc 100%);
