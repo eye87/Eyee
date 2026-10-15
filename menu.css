@@ -1,0 +1,125 @@
+/* Mobile navigation shares the homepage palette and typography. */
+#menu {
+  display: none;
+  flex-direction: column;
+  padding: 50px;
+  background: var(--color-navy);
+  color: #fff;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#menu[open] {display:flex;}
+#menu:focus {outline:none;}
+#menu .menu-top {
+  flex-shrink: 0;
+  min-height: 44px;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+  color: #fff;
+  transform: translateY(-21px);
+}
+#menu .menu-brand {display:flex; align-items:center; width:132px; height:44px; transform:translateX(-10px);}
+#menu .menu-brand img {display:block; width:132px; height:auto; filter:brightness(0) invert(1);}
+#menu .menu-close {
+  position: absolute;
+  left: var(--menu-close-left, auto);
+  top: var(--menu-close-top, 0px);
+  right: -9px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  transition: color .2s ease;
+  margin-top: 0;
+  margin-right: 0;
+}
+#menu .menu-close:hover {color:var(--color-blue-light);}
+#menu .menu-close .menu-icon {width:34px; height:34px;}
+#menu .menu-layout {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  margin: 66px 0 0;
+}
+#menu .menu-layout nav {margin:0;}
+#menu .menu-layout nav a {
+  padding: 24px 0;
+  border: 0;
+  color: #fff;
+  font-size: clamp(26px, 3.6vw, 34px);
+  line-height: 1.2;
+  transition: color .2s ease;
+}
+#menu .menu-layout nav a span {font-size:26px; font-weight:400; color:var(--color-blue-light); transition:transform .2s ease;}
+#menu .menu-layout nav a:hover {color:var(--color-blue-light);}
+#menu .menu-layout nav a:hover span {transform:translateX(4px);}
+#menu .menu-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+#menu .menu-language {margin:0;}
+#menu .menu-language .language-switcher {transform:translateX(-8px);}
+#menu .menu-language .language-switcher {color:#d2daf3;}
+#menu .language-switcher button {min-width:36px; min-height:44px;}
+#menu .language-switcher button:hover,
+#menu .language-switcher button[aria-pressed="true"] {color:#fff;}
+#menu .language-switcher button[aria-pressed="true"] {text-decoration-color:var(--color-blue-light);}
+#menu .language-switcher button:focus-visible {outline-color:var(--color-blue-light);}
+#menu .menu-call {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 22px;
+  border-radius: var(--radius-action);
+  background: var(--color-blue);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color .2s ease;
+}
+#menu .menu-call:hover {background:var(--color-blue-dark);}
+#menu a:focus-visible,#menu button:focus-visible {outline:2px solid var(--color-blue-light); outline-offset:4px;}
+@media(max-width:650px) {
+  #menu .menu-top {min-height:44px; padding:0; transform:translateY(-23px);}
+  #menu .menu-brand,#menu .menu-brand img {width:120px;}
+  #menu .menu-layout {margin-top:58px; gap:28px;}
+  #menu .menu-layout nav a {padding:23px 0; font-size:27px;}
+  #menu .menu-call {padding-inline:16px;}
+}
+@media(max-height:650px) {
+  #menu .menu-layout {margin-top:46px; gap:16px;}
+  #menu .menu-layout nav a {padding:10px 0; font-size:24px;}
+  #menu .menu-bottom {padding-top:0;}
+}
+
+.menu-icon {display:block; overflow:visible;}
+.header .menu-toggle .menu-icon {color:var(--color-blue);}
+.menu-icon line {transform-origin:14px 12px; transition:transform .2s ease, opacity .16s ease;}
+.menu-icon .icon-top {transform:translateY(-8px);}
+.menu-icon .icon-bottom {transform:translate(5px,8px) scaleX(.55);}
+.menu-toggle[aria-expanded="true"] .icon-top,
+#menu.is-icon-open .icon-top {transform:rotate(45deg);}
+.menu-toggle[aria-expanded="true"] .icon-middle,
+#menu.is-icon-open .icon-middle {opacity:0;}
+.menu-toggle[aria-expanded="true"] .icon-bottom,
+#menu.is-icon-open .icon-bottom {transform:rotate(-45deg);}
+@media(prefers-reduced-motion:reduce) {.menu-icon line {transition:none;}}
+@media(prefers-reduced-motion:reduce) {
+  #menu a,#menu button,#menu .menu-layout nav a span {transition:none;}
+  #menu .menu-layout nav a:hover span {transform:none;}
+}

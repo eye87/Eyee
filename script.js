@@ -10,11 +10,38 @@ if (isPageReload) {
 }
 const menu = document.querySelector('#menu');
 const toggle = document.querySelector('.menu-toggle');
-toggle.addEventListener('click', () => { menu.showModal(); document.body.classList.add('menu-open'); toggle.setAttribute('aria-expanded','true'); });
-function closeMenu(){ menu.close(); }
+let menuCloseTimer;
+let menuIsClosing=false;
+function alignMenuClose(){
+ const target=toggle.getBoundingClientRect();
+ const bar=menu.querySelector('.menu-top').getBoundingClientRect();
+ menu.style.setProperty('--menu-close-left',`${target.left+target.width/2-bar.left-22}px`);
+ menu.style.setProperty('--menu-close-top',`${target.top+target.height/2-bar.top-22}px`);
+}
+toggle.addEventListener('click', () => {
+ clearTimeout(menuCloseTimer);
+ menuIsClosing=false;
+ menu.showModal();
+ alignMenuClose();
+ menu.focus({preventScroll:true});
+ document.body.classList.add('menu-open');
+ toggle.setAttribute('aria-expanded','true');
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{if(menu.open&&!menuIsClosing)menu.classList.add('is-icon-open');}));
+});
+addEventListener('resize',()=>{if(menu.open)alignMenuClose();});
+function closeMenu(){
+ if(!menu.open)return;
+ clearTimeout(menuCloseTimer);
+ menuIsClosing=true;
+ menu.classList.remove('is-icon-open');
+ if(reduced.matches)menu.close();
+ else menuCloseTimer=setTimeout(()=>menu.close(),210);
+}
+menu.addEventListener('cancel',event=>{event.preventDefault();closeMenu();});
+menu.addEventListener('requestclose',closeMenu);
 document.querySelector('.menu-close').addEventListener('click', closeMenu);
 menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
-menu.addEventListener('close',()=>{document.body.classList.remove('menu-open');toggle.setAttribute('aria-expanded','false');toggle.focus({preventScroll:true});});
+menu.addEventListener('close',()=>{clearTimeout(menuCloseTimer);menu.classList.remove('is-icon-open');document.body.classList.remove('menu-open');toggle.setAttribute('aria-expanded','false');toggle.focus({preventScroll:true});});
 const video = document.querySelector('#reel');
 const videoButton = document.querySelector('#video-toggle');
 const systemReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');

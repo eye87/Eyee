@@ -8,6 +8,7 @@
     ['Cases', 'Projects'],
     ['Over ons', 'About us'],
     ['Sluiten', 'Close'],
+    ['Bel ons', 'Call us'],
     ['Een frisse blik begint hier', 'A fresh perspective starts here'],
     ['Een goed gesprek.', 'A good conversation.'],
     ['Een nieuw perspectief.', 'A new perspective.'],
@@ -137,6 +138,7 @@
     ['Eyee — pagina verversen', 'Eyee — refresh page'],
     ['Hoofdnavigatie', 'Main navigation'],
     ['Menu openen', 'Open menu'],
+    ['Menu sluiten', 'Close menu'],
     ['Uitgebreide navigatie', 'Expanded navigation'],
     ['Dronebeeld van de stad', 'Aerial view of the city'],
     ['Een selectie van onze opdrachtgevers', 'A selection of our clients'],
@@ -224,7 +226,9 @@
     url.searchParams.set('lang', next);
     history.pushState({...history.state, language: next}, '', url);
     applyLanguage(next);
-    button.closest('dialog')?.close();
+    const dialog = button.closest('dialog');
+    if (dialog?.id === 'menu') dialog.dispatchEvent(new Event('requestclose'));
+    else dialog?.close();
   }));
   addEventListener('popstate', () => applyLanguage(queryLanguage() || stored || browserLanguage));
   applyLanguage(queryLanguage() || (stored === 'nl' || stored === 'en' ? stored : browserLanguage));
