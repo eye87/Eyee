@@ -141,7 +141,7 @@ function updateReel(){
   scheduled=false;
   if(reduced.matches){frame.style.width='100%';frame.style.height='';frame.style.transform='';frame.style.setProperty('--reel-radius','0px');return;}
   const rect=track.getBoundingClientRect();
-  if(innerWidth<=650){
+  if(innerWidth<=650 || matchMedia('(min-width: 651px) and (max-width: 1100px) and (orientation: portrait)').matches){
     const viewport=track.querySelector('.reel-sticky').getBoundingClientRect().height || innerHeight;
     const clamp=value=>Math.max(0,Math.min(1,value));
     const widthProgress=clamp((viewport*.6-rect.top)/(viewport*.7));
