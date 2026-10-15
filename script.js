@@ -12,15 +12,39 @@ const menu = document.querySelector('#menu');
 const toggle = document.querySelector('.menu-toggle');
 let menuCloseTimer;
 let menuIsClosing=false;
+let menuInput='pointer';
+document.addEventListener('pointerdown',()=>{menuInput='pointer';},{capture:true,passive:true});
+document.addEventListener('keydown',()=>{menuInput='keyboard';toggle.classList.remove('suppress-pointer-focus');},{capture:true});
 function alignMenuClose(){
  const target=toggle.getBoundingClientRect();
- const bar=menu.querySelector('.menu-top').getBoundingClientRect();
- menu.style.setProperty('--menu-close-left',`${target.left+target.width/2-bar.left-22}px`);
- menu.style.setProperty('--menu-close-top',`${target.top+target.height/2-bar.top-22}px`);
+ const centerX=target.left+target.width/2;
+ const centerY=target.top+target.height/2;
+ menu.style.setProperty('--menu-close-left',`${centerX-22}px`);
+ menu.style.setProperty('--menu-close-top',`${centerY-22}px`);
+ const icon=toggle.querySelector('svg').getBoundingClientRect();
+ menu.style.setProperty('--menu-toggle-icon-width',`${icon.width}px`);
+ menu.style.setProperty('--menu-toggle-icon-height',`${icon.height}px`);
+ const source=document.querySelector('.header .brand-full');
+ const sourceBox=source.getBoundingClientRect();
+ if(sourceBox.width>1){
+  const matrix=source.getScreenCTM();
+  // The menu asset contains the same paths, cropped to viewBox 6 6 98 30.
+  const origin=new DOMPoint(6,6).matrixTransform(matrix);
+  const eye=source.querySelector('.brand-eye').getBBox();
+  const visibleLeft=new DOMPoint(eye.x,eye.y).matrixTransform(matrix).x;
+  menu.style.setProperty('--menu-brand-left',`${origin.x}px`);
+  menu.style.setProperty('--menu-brand-top',`${origin.y}px`);
+  menu.style.setProperty('--menu-brand-width',`${98*Math.hypot(matrix.a,matrix.b)}px`);
+  menu.style.setProperty('--menu-brand-height',`${30*Math.hypot(matrix.c,matrix.d)}px`);
+  menu.style.paddingLeft=`${visibleLeft}px`;
+ }
+ const crossExtent=34/28*(11/Math.SQRT2+1.5);
+ menu.style.paddingRight=`${innerWidth-centerX-crossExtent}px`;
 }
 toggle.addEventListener('click', () => {
  clearTimeout(menuCloseTimer);
  menuIsClosing=false;
+ menu.classList.remove('is-closing');
  menu.showModal();
  alignMenuClose();
  menu.focus({preventScroll:true});
@@ -33,6 +57,10 @@ function closeMenu(){
  if(!menu.open)return;
  clearTimeout(menuCloseTimer);
  menuIsClosing=true;
+ menu.classList.add('is-closing');
+ // Both copies morph together while the dialog covers the header. Otherwise
+ // the header starts a second closing animation only after the dialog closes.
+ toggle.setAttribute('aria-expanded','false');
  menu.classList.remove('is-icon-open');
  if(reduced.matches)menu.close();
  else menuCloseTimer=setTimeout(()=>menu.close(),210);
@@ -41,7 +69,7 @@ menu.addEventListener('cancel',event=>{event.preventDefault();closeMenu();});
 menu.addEventListener('requestclose',closeMenu);
 document.querySelector('.menu-close').addEventListener('click', closeMenu);
 menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
-menu.addEventListener('close',()=>{clearTimeout(menuCloseTimer);menu.classList.remove('is-icon-open');document.body.classList.remove('menu-open');toggle.setAttribute('aria-expanded','false');toggle.focus({preventScroll:true});});
+menu.addEventListener('close',()=>{clearTimeout(menuCloseTimer);menu.classList.remove('is-icon-open');document.body.classList.remove('menu-open');toggle.setAttribute('aria-expanded','false');toggle.classList.toggle('suppress-pointer-focus',menuInput==='pointer');toggle.focus({preventScroll:true});});
 const video = document.querySelector('#reel');
 const videoButton = document.querySelector('#video-toggle');
 const systemReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
