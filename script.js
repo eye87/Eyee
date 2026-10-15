@@ -132,8 +132,9 @@ if (footerConversation && footerEye) {
 }
 let manualPause = false;
 let manualVideoPlay = false;
-function videoState(){const paused=video.paused;videoButton.innerHTML=paused?'Afspelen <span>▶</span>':'Pauzeren <span>Ⅱ</span>';videoButton.setAttribute('aria-label',paused?'Projectvideo afspelen':'Projectvideo pauzeren');}
+function videoState(){const paused=video.paused;videoButton.dataset.paused=String(paused);videoButton.setAttribute('aria-label',paused?'Projectvideo afspelen':'Projectvideo pauzeren');}
 video.addEventListener('play',videoState); video.addEventListener('pause',videoState);
+videoState();
 videoButton.addEventListener('click',()=>{if(video.paused){manualPause=false;manualVideoPlay=true;video.play().catch(()=>videoState());}else{manualPause=true;manualVideoPlay=false;video.pause();}});
 new IntersectionObserver(entries=>{if(!entries[0].isIntersecting){video.pause();}else if(!manualPause&&(!reduced.matches||manualVideoPlay)){video.play().catch(()=>videoState());}},{threshold:.15}).observe(video);
 const track=document.querySelector('.reel-track');const frame=document.querySelector('.reel-frame');let scheduled=false;
@@ -332,7 +333,7 @@ function syncHeroVideo(){
     !reduced.matches && !navigator.connection?.saveData;
   if(mayPlay){
     if(!heroVideo.hasAttribute('src')){
-      heroVideo.src=heroVideoMobile.matches?'assets/eyee-showreel-hero-mobile.mp4':'assets/eyee-showreel-hero-desktop.mp4';
+      heroVideo.src=heroVideoMobile.matches?'assets/eyee-showreel-20261015-hero-mobile.mp4':'assets/eyee-showreel-20261015-hero-desktop.mp4';
     }
     heroVideo.muted=true;
     heroVideo.play().catch(()=>{});

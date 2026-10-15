@@ -16,7 +16,7 @@
     />
     <link
       rel="stylesheet"
-      href="style.css?v=20261015-ipad-portrait-hero-plus5"
+      href="style.css?v=20261015-shared-content-gutters"
     />
   </head>
   <body>
@@ -30,7 +30,7 @@
       <defs>
         <clipPath id="hero-photo-clip" clipPathUnits="objectBoundingBox">
           <path
-            d="M.1973 0H.9997V.8546C.9997.9272.9377.9992.8481.9992C.5922.9992.4571.9992.2716.8875C.1407.8086.0512.6837.0139.5259C-.0219.3747.0158.2579.0764.1527C.104.1054.1863.0316.1973 0Z"
+            d="M.1973 0H.9997V.8546C.9997.9272.9377.9992.8481.9992C.5922.9992.4571.9992.2716.8875C.1407.8086.0512.6837.0139.5259C-.018.3747.0158.2579.0764.1527C.104.1054.1863.0316.1973 0Z"
           />
         </clipPath>
       </defs>
@@ -1249,16 +1249,19 @@
                   poster="assets/eyee-showreel-poster.jpg"
                   aria-label="Showreel van Eyee met beelden van de stad, mensen, onderzoek en techniek"
                 >
-                  <source src="assets/eyee-showreel-mobile.mp4" type="video/mp4" media="(max-width: 650px)" />
-                  <source src="assets/eyee-showreel-desktop.mp4" type="video/mp4" />
+                  <source src="assets/eyee-showreel-20261015-mobile.mp4" type="video/mp4" media="(max-width: 650px)" />
+                  <source src="assets/eyee-showreel-20261015-desktop.mp4" type="video/mp4" />
                 </video>
                 <div class="reel-shade"></div>
                 <button
                   id="video-toggle"
                   class="video-toggle"
                   aria-label="Projectvideo afspelen"
+                  data-paused="true"
+                  type="button"
                 >
-                  Afspelen <span>▶</span>
+                  <svg class="video-icon-play" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 4.5a1 1 0 0 1 1.5-.86l11 7.5a1 1 0 0 1 0 1.72l-11 7.5A1 1 0 0 1 8 19.5Z"/></svg>
+                  <svg class="video-icon-pause" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
                 </button>
               </div>
             </div>
@@ -1817,6 +1820,6 @@
         </footer>
       </div>
     </main>
-    <script src="script.js?v=20261015-portrait-tablet-reel"></script>
+    <script src="script.js?v=20261015-showreel-update"></script>
   </body>
 </html>
