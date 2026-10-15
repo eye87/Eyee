@@ -1437,20 +1437,21 @@ body {
   padding: 9px;
 }
 
-/* De volledige kaart omhoog, los van de scroll-intro. */
+/* Move the complete clipped surface together, without layout repaints. */
 .case-showcase {
   overflow: visible;
 }
 .case-poster {
   top: 0;
+  translate: 0 0;
 }
 @media (hover: hover) {
   .case-poster:hover {
-    top: -8px;
+    translate: 0 -8px;
   }
 }
 .case-poster:focus-visible {
-  top: -8px;
+  translate: 0 -8px;
 }
 .case-poster:hover .case-poster-image,
 .case-poster:focus-visible .case-poster-image {
@@ -1460,6 +1461,7 @@ body {
   .case-poster,
   .case-poster.reveal-case {
     top: 0;
+    translate: none;
     transition: none;
   }
 }
@@ -1474,11 +1476,11 @@ body {
 }
 @media (hover: hover) {
   .case-hover-area:hover .case-poster {
-    top: -8px;
+    translate: 0 -8px;
   }
 }
 .case-hover-area:focus-within .case-poster {
-  top: -8px;
+  translate: 0 -8px;
 }
 .case-poster-image {
   transform: none;
@@ -1488,6 +1490,7 @@ body {
   .case-hover-area:hover .case-poster,
   .case-hover-area:focus-within .case-poster {
     top: 0;
+    translate: none;
   }
 }
 
@@ -2906,7 +2909,7 @@ body {
   }
 }
 
-/* Paint photo, gradient and hover tint as one background surface in Safari. */
+/* Keep photos static; only composite the hover overlay's opacity. */
 .case-maas {
   --case-photo: url("assets/maas.webp");
   --case-position: center;
@@ -2938,6 +2941,8 @@ body {
   background-position: center, var(--case-position);
   background-repeat: no-repeat;
   background-blend-mode: normal, normal;
+  /* One clipping boundary for the photo and tint, not two rounded edges. */
+  overflow: visible;
   clip-path: inset(0 round var(--radius-image));
   -webkit-clip-path: inset(0 round var(--radius-image));
   border: 0;
@@ -2948,15 +2953,17 @@ body {
 .case-poster::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -2px;
   z-index: 1;
   background: rgba(0, 13, 73, 0.72);
   border: 0;
-  border-radius: inherit;
+  border-radius: 0;
   pointer-events: none;
   opacity: 0;
   box-shadow: none;
   transition: opacity 0.35s ease;
+  will-change: opacity;
+  transform: translateZ(0);
 }
 .case-hover-area:hover .case-poster,
 .case-hover-area:focus-within .case-poster {
@@ -2972,14 +2979,14 @@ body {
 }
 .case-poster {
   transition:
-    top var(--duration-layout) cubic-bezier(0.22, 0.61, 0.36, 1),
+    translate var(--duration-layout) cubic-bezier(0.22, 0.61, 0.36, 1),
     background-color 0.35s ease;
 }
 .case-poster.reveal-case {
   transition:
     opacity 0.75s ease,
     transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1),
-    top var(--duration-layout) cubic-bezier(0.22, 0.61, 0.36, 1),
+    translate var(--duration-layout) cubic-bezier(0.22, 0.61, 0.36, 1),
     background-color 0.35s ease;
 }
 .case-poster.reveal-case.is-visible {
@@ -4810,6 +4817,7 @@ body.menu-open {
   gap: 40px;
   border-top: 0;
   padding-top: 40px;
+  padding-bottom: 30px;
   font-size: 15px;
   line-height: 1.6;
 }
@@ -4831,11 +4839,18 @@ body.menu-open {
   width: fit-content;
   margin-bottom: 8px;
 }
-.footer .footer-directory a {
+.footer .footer-directory a,
+.footer .footer-policy-links a > span {
   position: relative;
   text-decoration: none;
 }
-.footer .footer-directory a::after {
+.footer .footer-directory a > span,
+.footer .footer-policy-links a > span {
+  position: relative;
+  display: inline-block;
+}
+.footer .footer-directory a > span::after,
+.footer .footer-policy-links a > span::after {
   content: '';
   position: absolute;
   left: 0;
@@ -4848,27 +4863,74 @@ body.menu-open {
   transition: transform 0.25s ease;
 }
 .footer .footer-directory a:hover,
-.footer .footer-directory a:focus-visible {
+.footer .footer-directory a:focus-visible,
+.footer .footer-policy-links a:hover,
+.footer .footer-policy-links a:focus-visible {
   color: #fff;
   opacity: 1;
   text-decoration: none;
 }
-.footer .footer-directory a:hover::after,
-.footer .footer-directory a:focus-visible::after { transform: scaleX(1); }
+.footer .footer-directory a:hover > span::after,
+.footer .footer-directory a:focus-visible > span::after,
+.footer .footer-policy-links a:hover > span::after,
+.footer .footer-policy-links a:focus-visible > span::after { transform: scaleX(1); }
 @media (prefers-reduced-motion: reduce) {
-  .footer .footer-directory a::after { transition: none; }
+  .footer .footer-directory a > span::after,
+  .footer .footer-policy-links a > span::after { transition: none; }
 }
 .footer-directory address { font-style: normal; }
 .footer-directory address + address { margin-top: 20px; }
 .footer-directory address strong { font-weight: 500; }
+.footer-directory .footer-location {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+.footer-directory .footer-location svg {
+  display: block;
+  margin-top: 5px;
+  color: var(--color-blue-light);
+}
+.footer-directory .footer-location strong {
+  font-size: 17px;
+  font-weight: 700;
+}
+.footer-directory nav a {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 10px;
+}
+.footer-directory nav a::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin-top: 8px;
+  border-top: 1.5px solid var(--color-blue-light);
+  border-right: 1.5px solid var(--color-blue-light);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
 .footer-directory .footer-contact-link {
   display: flex;
   align-items: center;
   gap: 10px;
   min-height: 32px;
 }
-.footer-contact-link svg { flex: none; color: var(--color-blue-light); }
-.footer .footer-directory .footer-contact-link::after { left: 28px; }
+.footer-contact-link svg {
+  display: block;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--color-blue-light);
+  /* Keep SVG rasterization stable when the adjacent underline composites. */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  transition: none;
+}
 .footer .footer-contact-link:hover svg,
 .footer .footer-contact-link:focus-visible svg { color: var(--color-blue-light); }
 .footer-contact-link span { overflow-wrap: anywhere; }
@@ -5362,7 +5424,7 @@ body.menu-open {
   .client-wall h2 { font-size: clamp(39px, 9.7vw, 58px); }
 }
 .client-wall .eyee-logoslider-wrapper {
-  --gap: 48px;
+  --gap: 118.8px;
   margin-top: 40px;
   gap: 8px;
   -webkit-mask-image: linear-gradient(to right, transparent, #000 3%, #000 97%, transparent);
@@ -5375,18 +5437,21 @@ body.menu-open {
   animation-direction: reverse;
 }
 .eyee-logoslider-wrapper .marquee a.logo-item {
-  width: 224px;
+  width: auto;
   height: 88px;
   background: transparent;
   border-radius: 0;
 }
 .eyee-logoslider-wrapper .marquee .logo-img {
-  max-width: 90%;
-  scale: 1.1;
+  /* Fit every aspect ratio inside the slot, including future wide logos.
+     Transform-based enlargement bypasses these bounds and clips the artwork. */
+  max-width: calc(100% - 16px);
+  max-height: calc(100% - 16px);
+  object-fit: contain;
+  scale: 1;
 }
 .eyee-logoslider-wrapper .marquee .logo-img[alt="Symphony Travel"] {
   height: 24px !important;
-  max-width: 96%;
 }
 .eyee-logoslider-wrapper .marquee .logo-img[alt="Spijs"] { scale: 0.95; }
 .eyee-logoslider-wrapper .marquee .logo-img[alt="The Indian Maharadja"] { scale: 1; }
@@ -5394,15 +5459,50 @@ body.menu-open {
 .eyee-logoslider-wrapper:focus-within .marquee__group {
   animation-play-state: paused;
 }
+.eyee-logoslider-wrapper.has-client-note .marquee__group {
+  animation-play-state: paused;
+}
+/* Outside the masked marquee, so the note never gets cropped. */
+.client-logo-tooltip {
+  position: fixed;
+  z-index: 150;
+  width: 304px;
+  max-width: calc(100vw - 32px);
+  padding: 20px 24px;
+  border: 1px solid rgba(168, 188, 255, 0.35);
+  border-radius: 16px;
+  background: #eef2ff;
+  color: var(--color-navy);
+  box-shadow: 0 8px 24px rgba(0, 7, 43, 0.12);
+  text-align: left;
+  animation: client-note-arrive 160ms ease-out;
+}
+.client-logo-tooltip[hidden] { display: none; }
+.client-logo-tooltip strong {
+  display: block;
+  font-family: "GT Walsheim Pro", Avenir, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.client-logo-tooltip p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+@keyframes client-note-arrive {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .client-logo-tooltip { animation: none; }
+}
 @media (max-width: 767px) {
   .client-wall .eyee-logoslider-wrapper {
-    --gap: 32px;
+    --gap: 79.2px;
     margin-top: 28px;
   }
-  .eyee-logoslider-wrapper .marquee a.logo-item {
-    width: 168px;
-    height: 88px;
-  }
+  .eyee-logoslider-wrapper .marquee a.logo-item { height: 88px; }
   .eyee-logoslider-wrapper .marquee__group .r {
     gap: var(--gap);
   }
@@ -5762,7 +5862,7 @@ body.menu-open {
     text-underline-offset: 5px;
   }
   .client-wall.client-strip { padding-block: 64px; }
-  .client-strip .eyee-logoslider-wrapper .marquee .logo-img { scale: 0.85; }
+  .client-strip .eyee-logoslider-wrapper .marquee .logo-img { scale: 1; }
   .hero-portrait {
     order: 0;
     flex: none;
@@ -6088,4 +6188,30 @@ h2,
   .faq-intro > .faq-contact-link { display: none; }
   .faq-intro-mobile { display: inline; }
   .faq-contact-mobile { display: inline-flex; margin-top: 24px; }
+}
+
+/* Intrinsic logo widths: equal gaps between artwork, not equal empty slots. */
+.client-strip .eyee-logoslider-wrapper .marquee a.logo-item {
+  width: auto;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+.client-strip .eyee-logoslider-wrapper .marquee .logo-img.first {
+  position: static;
+  display: block;
+  width: auto;
+  height: var(--logo-height, 48px) !important;
+  max-width: 208px;
+  max-height: 72px;
+  margin: 0;
+  object-fit: contain;
+  transform: none;
+  scale: 1;
+}
+.client-strip .logo-item:has(img[alt="Symphony Travel"]) { --logo-height: 24px !important; }
+@media (max-width: 767px) {
+  .client-strip .eyee-logoslider-wrapper .marquee .logo-img.first {
+    height: calc(var(--logo-height, 48px) * 0.85) !important;
+    max-width: 152px;
+  }
 }

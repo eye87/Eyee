@@ -483,6 +483,10 @@ mobileHero.addEventListener('change',positionHeroPortrait);
 // One continuous client row, preserving inaccessible duplicates.
 const logoSlider=document.querySelector('.eyee-logoslider-wrapper');
 if(logoSlider){
+ logoSlider.querySelectorAll('a.logo-item').forEach(link=>{
+  const image=link.querySelector('.logo-img.first');
+  if(image?.style.height)link.style.setProperty('--logo-height',image.style.height);
+ });
  logoSlider.querySelectorAll('.marquee__group[aria-hidden]').forEach(group=>{
   group.removeAttribute('inert');
   group.querySelectorAll('a').forEach(link=>link.setAttribute('tabindex','-1'));
@@ -495,4 +499,99 @@ if(logoSlider){
    secondRow.remove();
   }
  });
+
+ // Editorial summaries from the existing opdrachtgever/project pages.
+ // Keep these local: hovering never makes a request or delays navigation.
+ const clientNotes={
+  'Sociaal Planbureau Groningen':'Ontwerp, ontwikkeling en onderhoud van een website die maatschappelijke kennis toegankelijk maakt.',
+  'Diabetesvereniging Nederland':'Een overzichtelijk platform dat mensen met diabetes helpt de juiste informatie te vinden.',
+  'Yesty':'Ontwerp en ontwikkeling van een website voor het belonen van medewerkers en klanten.',
+  'Salda':'Specialist in ventilatiesystemen en luchtbehandeling voor woningen en bedrijven.',
+  'Provincie Groningen':'Provinciale overheid voor de inwoners, organisaties en leefomgeving van Groningen.',
+  'Gullimex':'Meet- en monitoringoplossingen voor betrouwbare controle van processen.',
+  'Trendbureau Drenthe':'Een website die onderzoek en inzichten over de Drentse samenleving toegankelijk maakt.',
+  'The Indian Maharadja':'Een vernieuwde Magento-webshop voor het Nederlandse hockey- en sportmerk, samen met Mountain IT.',
+  'CMO STAMM':'Een toegankelijke, contentrijke website die maatschappelijke kennis helder ontsluit.',
+  '101BHV':'BHV- en EHBO-opleidingen en producten voor veiligheid op de werkvloer.',
+  'Beach Wagon':'Opvouwbare bolderkarren voor het strand, de camping en andere uitstapjes.',
+  'Provincie Drenthe':'Provinciale overheid voor de inwoners, organisaties en leefomgeving van Drenthe.',
+  'Bijscholing Instituut voor Therapeuten':'Cursussen en workshops voor de professionele ontwikkeling van therapeuten.',
+  'Drenthe samen gezond in beweging':'Een initiatief dat sport, beweging en een gezonde leefstijl in Drenthe stimuleert.',
+  'De Print Partner':'Digitale printoplossingen voor resellers, drukkerijen en grootverbruikers.',
+  'Horecagoedkoop':'Een vernieuwde UI/UX en Magento-webshop voor de online drankengroothandel, samen met Mountain IT.',
+  'Gooze':'Specialist in performance-onderdelen voor klassieke Amerikaanse auto’s.',
+  'Ukraine Food':'Ontwerp en ontwikkeling van een nieuwe webshop voor Ukraine Food.',
+  'Symphony Travel':'Een website en logo voor het reisbureau voor maatwerkreizen, samen met Mountain IT.',
+  'Kwekerij Arborealis':'Bijzondere bomen, struiken en planten, met aandacht voor biodiversiteit.',
+  'Groenstudio Schöne':'Een Gronings ontwerpbureau voor duurzame tuinen en landschappen.',
+  'Spijs':'Een Gronings restaurant met aandacht voor ambacht en lokale ingrediënten.'
+ };
+ const tip=document.createElement('div');
+ tip.id='client-logo-tooltip';
+ tip.className='client-logo-tooltip';
+ tip.setAttribute('role','tooltip');
+ tip.hidden=true;
+ const tipTitle=document.createElement('strong');
+ const tipDescription=document.createElement('p');
+ tip.append(tipTitle,tipDescription);
+ document.body.append(tip);
+ let activeLogo=null,showTimer,hideTimer;
+ function hideClientNote(){
+  clearTimeout(showTimer);
+  clearTimeout(hideTimer);
+  if(activeLogo)activeLogo.removeAttribute('aria-describedby');
+  activeLogo=null;
+  tip.hidden=true;
+  logoSlider.classList.remove('has-client-note');
+ }
+ function positionClientNote(){
+  if(!activeLogo)return;
+  const anchor=activeLogo.getBoundingClientRect();
+  const bounds=tip.getBoundingClientRect();
+  const left=Math.max(16,Math.min(innerWidth-bounds.width-16,anchor.left+(anchor.width-bounds.width)/2));
+  const above=anchor.top-bounds.height-12;
+  const top=above>=16?above:Math.min(innerHeight-bounds.height-16,anchor.bottom+12);
+  tip.style.left=`${left}px`;
+  tip.style.top=`${Math.max(16,Math.min(innerHeight-bounds.height-16,top+10))}px`;
+ }
+ function showClientNote(link,delay){
+  hideClientNote();
+  const name=link.querySelector('img[alt]')?.alt;
+  if(!clientNotes[name])return;
+  showTimer=setTimeout(()=>{
+   activeLogo=link;
+   tipTitle.textContent=name;
+   tipDescription.textContent=clientNotes[name];
+   tip.hidden=false;
+   link.setAttribute('aria-describedby',tip.id);
+   logoSlider.classList.add('has-client-note');
+   positionClientNote();
+  },delay);
+ }
+ function scheduleHideClientNote(){
+  clearTimeout(showTimer);
+  clearTimeout(hideTimer);
+  hideTimer=setTimeout(()=>{
+   if(activeLogo?.matches(':focus-visible'))return;
+   hideClientNote();
+  },180);
+ }
+ logoSlider.querySelectorAll('a.logo-item').forEach(link=>{
+  link.addEventListener('pointerenter',event=>{
+   if(event.pointerType==='mouse' || (event.pointerType==='pen' && matchMedia('(any-hover: hover)').matches))showClientNote(link,100);
+  });
+  link.addEventListener('pointerleave',scheduleHideClientNote);
+  link.addEventListener('focus',()=>{
+   if(link.matches(':focus-visible'))showClientNote(link,0);
+  });
+  link.addEventListener('blur',scheduleHideClientNote);
+  link.addEventListener('click',hideClientNote);
+ });
+ tip.addEventListener('pointerenter',()=>clearTimeout(hideTimer));
+ tip.addEventListener('pointerleave',scheduleHideClientNote);
+ document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')hideClientNote();
+ });
+ window.addEventListener('scroll',hideClientNote,{passive:true});
+ window.addEventListener('resize',hideClientNote,{passive:true});
 }
