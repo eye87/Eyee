@@ -333,7 +333,7 @@ function syncHeroVideo(){
     !reduced.matches && !navigator.connection?.saveData;
   if(mayPlay){
     if(!heroVideo.hasAttribute('src')){
-      heroVideo.src=heroVideoMobile.matches?'assets/eyee-showreel-20261015-v3-hero-mobile.mp4':'assets/eyee-showreel-20261015-v3-hero-desktop.mp4';
+      heroVideo.src=heroVideoMobile.matches?'assets/eyee-showreel-20261015-v4-hero-mobile.mp4':'assets/eyee-showreel-20261015-v4-hero-desktop.mp4';
     }
     heroVideo.muted=true;
     heroVideo.play().catch(()=>{});
