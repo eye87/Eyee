@@ -6013,7 +6013,7 @@ h2,
     border-radius: var(--radius-image);
     background: var(--color-blue);
     color: #fff;
-    flex: 0 0 56%;
+    flex: 0 0 46%;
     min-width: 0;
     scroll-snap-align: start;
   }
@@ -6035,7 +6035,7 @@ h2,
   }
   .case-showcase .case-poster-grid::-webkit-scrollbar { display: none; }
   .case-poster-grid > .case-hover-area {
-    flex: 0 0 56%;
+    flex: 0 0 46%;
     min-width: 0;
     scroll-snap-align: start;
   }
