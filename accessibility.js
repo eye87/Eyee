@@ -1,14 +1,14 @@
 /* Optional reading preferences; native browser zoom and keyboard controls stay available. */
 (() => {
   const root = document.documentElement;
-  // Keep iOS controls inside the stable small viewport, even with bars hidden.
+  // Let CSS track the dynamic viewport without document-scroll positioning.
   // Never track document scroll with absolute-positioned floating controls.
   const stableIOSViewport = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   root.toggleAttribute('data-ios-floating', stableIOSViewport);
   const viewportProbe = document.createElement('span');
   viewportProbe.setAttribute('aria-hidden', 'true');
-  viewportProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none;';
+  viewportProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100dvh;visibility:hidden;pointer-events:none;';
   if (stableIOSViewport) document.body.append(viewportProbe);
   const key = 'eyee-accessibility';
   const hiddenSessionKey = 'eyee-accessibility-hidden';

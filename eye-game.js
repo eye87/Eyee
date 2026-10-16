@@ -6,7 +6,7 @@
 
   const desktop = matchMedia('(min-width: 1024px) and (pointer: fine)');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let bloom, wash, gameCssLink, gamePromise, game;
+  let bloom, wash, gameCssLink, gameScript, gamePromise, game;
   let opening = false, gameActive = false, charge = 0, openFrame = 0;
   let eyeArmedUntil = 0;
   let pointerX = -1, pointerY = -1;
@@ -40,20 +40,31 @@
   }
   function loadGame() {
     if (gamePromise) return gamePromise;
-    const css = new Promise((resolve, reject) => {
+    if (!gameCssLink) {
       gameCssLink = document.createElement('link');
       gameCssLink.rel = 'stylesheet';
-      gameCssLink.href = 'eye-game.css?v=20261016-6';
-      const timeout = setTimeout(() => {
-        if (gameCssLink.sheet) resolve();
-        else reject(new Error('Spelopmaak kon niet laden'));
-      }, 3000);
-      gameCssLink.onload = () => { clearTimeout(timeout); resolve(); };
-      gameCssLink.onerror = () => { clearTimeout(timeout); reject(new Error('Spelopmaak kon niet laden')); };
+      gameCssLink.href = 'eye-game.css?v=20261016-7';
       document.head.appendChild(gameCssLink);
+    }
+    // A classic script also works when the concept is opened as a local file.
+    // The CSS link's load event is unreliable in Safari, so it must not gate
+    // the game: both resources start together after the eye gesture.
+    gamePromise = new Promise((resolve, reject) => {
+      if (window.EyeeGame?.createEyeGame) { resolve(window.EyeeGame); return; }
+      gameScript = document.createElement('script');
+      gameScript.src = 'eye-game-play.js?v=20261016-7';
+      const timeout = setTimeout(() => reject(new Error('Spelcode kon niet laden')), 8000);
+      gameScript.onload = () => {
+        clearTimeout(timeout);
+        if (window.EyeeGame?.createEyeGame) resolve(window.EyeeGame);
+        else reject(new Error('Spelcode is niet beschikbaar'));
+      };
+      gameScript.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error('Spelcode kon niet laden'));
+      };
+      document.head.appendChild(gameScript);
     });
-    gamePromise = Promise.all([css, import('./eye-game-play.js?v=20261016-6')])
-      .then(([, module]) => module);
     return gamePromise;
   }
   function updateEffect() {
@@ -95,6 +106,9 @@
       gameActive = false;
       gamePromise = null;
       gameCssLink?.remove();
+      gameCssLink = null;
+      gameScript?.remove();
+      gameScript = null;
       clearEffects();
       console.error('Het Eyee-spel kon niet openen:', error);
     }

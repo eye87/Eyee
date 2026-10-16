@@ -1,4 +1,4 @@
-export function createEyeGame(onClose) {
+function createEyeGame(onClose) {
   const template = document.querySelector('#eye-game-template');
   if (!template) throw new Error('Eyee-speltemplate ontbreekt');
   const dialog = template.content.firstElementChild.cloneNode(true);
@@ -181,3 +181,5 @@ export function createEyeGame(onClose) {
   });
   return { open: openGame };
 }
+
+window.EyeeGame = { createEyeGame };
