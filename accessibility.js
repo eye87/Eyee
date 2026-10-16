@@ -47,7 +47,7 @@
   panel.innerHTML = `<div class="accessibility-heading"><h2 id="accessibility-title" tabindex="-1"></h2><button type="button" class="accessibility-close" data-close>×</button></div>
     <div class="accessibility-size"><span data-copy="size"></span><div><button type="button" data-size="-10">A−</button><output aria-live="polite"></output><button type="button" data-size="10">A+</button></div></div>
     <div class="accessibility-options"></div>
-    <div class="accessibility-actions"><button type="button" data-reset></button></div>
+    <div class="accessibility-actions"><button type="button" data-reset><span class="accessibility-reset-label"></span><span class="accessibility-reset-arrow" aria-hidden="true"><img src="assets/arrow-right-white.svg" width="18" height="12" alt=""></span></button></div>
     <button type="button" class="accessibility-hide-option" data-hide-launch data-copy="hide"></button>
     <p class="accessibility-note" data-copy="note"></p>
     <p class="accessibility-status" role="status"></p>`;
@@ -129,7 +129,7 @@
     });
     panel.querySelectorAll('[data-copy]').forEach(element => {element.textContent = text[element.dataset.copy];});
     panel.querySelector('[data-close]').setAttribute('aria-label', text.close);
-    panel.querySelector('[data-reset]').textContent = text.reset;
+    panel.querySelector('.accessibility-reset-label').textContent = text.reset;
     panel.querySelector('[data-size="10"]').setAttribute('aria-label', text.increase);
     panel.querySelector('[data-size="-10"]').setAttribute('aria-label', text.decrease);
     options.querySelectorAll('button').forEach(button => {

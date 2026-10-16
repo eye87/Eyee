@@ -52,6 +52,7 @@ html[data-a11y-motion] .accessibility-hide {transition:none; transform:none;}
 .footer-policy-links .accessibility-footer-trigger:is(:hover,:focus-visible) {color:#fff; text-decoration:underline; text-decoration-color:var(--color-blue); text-decoration-thickness:1px; text-underline-offset:4px;}
 .accessibility-footer-trigger {border:0; background:none; color:inherit; font:inherit; padding:8px 0; margin-left:14px; text-decoration:underline; text-underline-offset:4px; cursor:pointer;}
 .accessibility-panel {
+  --accessibility-panel-padding:22px;
   position: fixed;
   inset: 0 20px 0 auto;
   margin: auto 0;
@@ -77,32 +78,37 @@ body:has(#accessibility-panel[open]) {overflow:hidden;}
 .accessibility-panel h2:focus {outline:none!important;}
 .accessibility-close {flex:0 0 44px; height:44px; margin-left:auto; border:0; background:transparent; color:#000d49; font:28px/1 Arial,sans-serif; cursor:pointer; transition:color .2s ease;}
 .accessibility-close:hover,.accessibility-close:focus-visible {color:var(--color-blue);}
-.accessibility-heading {margin-bottom:20px;}
-.accessibility-size {display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 0; border-block:1px solid #eaf0f8; font-weight:700;}
-.accessibility-size > div {display:flex; align-items:center; gap:8px;}
-.accessibility-size button {width:44px; height:44px; border:0; border-radius:50%; background:#eef2ff; color:#000d49; font:700 17px Avenir,Arial,sans-serif; cursor:pointer;}
+.accessibility-heading {margin:calc(-1 * var(--accessibility-panel-padding)) calc(-1 * var(--accessibility-panel-padding)) 4px; padding:18px var(--accessibility-panel-padding); border-radius:27px 27px 0 0; background:#f3f5ff;}
+.accessibility-size {display:flex; justify-content:space-between; align-items:center; gap:12px; padding:18px 0; border-bottom:1px solid #eaf0f8; font:500 15px/1.4 "GT Walsheim Pro",Avenir,Arial,sans-serif;}
+.accessibility-size > div {display:flex; align-items:center; gap:0; padding:2px; border-radius:999px; background:#f3f5ff;}
+.accessibility-size button {width:44px; height:44px; border:0; border-radius:50%; background:transparent; color:#000d49; font:700 17px Avenir,Arial,sans-serif; cursor:pointer; transition:background-color .2s ease;}
+.accessibility-size button:not(:disabled):hover {background:#dfe6ff;}
 .accessibility-size button:disabled {opacity:.4; cursor:default;}
 .accessibility-size output {min-width:43px; text-align:center; font-size:13px;}
 .accessibility-options > button {display:flex; width:100%; min-height:76px; align-items:center; gap:16px; padding:16px 0; text-align:left; border:0; border-bottom:1px solid #eaf0f8; background:none; color:#000d49; font:inherit; cursor:pointer;}
-.accessibility-options strong {display:block; font-weight:700;}
+.accessibility-options strong {display:block; font:500 15px/1.35 "GT Walsheim Pro",Avenir,Arial,sans-serif;}
 .accessibility-options small {display:block; margin-top:2px; font-size:13px; line-height:1.4; color:#4a5578;}
 .accessibility-options small[hidden] {display:none;}
 .accessibility-options button:has(small[hidden]) {min-height:64px;}
-.accessibility-switch {position:relative; flex:0 0 40px; height:24px; margin-left:auto; border:1px solid #7985a6; border-radius:999px; background:#e4e9f6;}
-.accessibility-switch::after {content:''; position:absolute; width:16px; height:16px; top:3px; left:3px; border-radius:50%; background:#596583;}
+.accessibility-switch {position:relative; flex:0 0 40px; height:24px; margin-left:auto; border:1px solid #7985a6; border-radius:999px; background:#d9e0f0; transition:background-color .2s ease,border-color .2s ease;}
+.accessibility-switch::after {content:''; position:absolute; width:18px; height:18px; top:2px; left:2px; border-radius:50%; background:#fff; box-shadow:0 1px 3px #000d4926; transition:transform .2s cubic-bezier(.22,1,.36,1);}
 .accessibility-options [aria-pressed="true"] .accessibility-switch {border-color:#3558fd; background:#3558fd;}
-.accessibility-options [aria-pressed="true"] .accessibility-switch::after {left:19px; background:#fff;}
-.accessibility-note {margin:16px 0 0; font-size:12px; line-height:1.5; color:#4a5578; text-align:center;}
-.accessibility-actions {display:grid; gap:8px; margin-top:24px;}
+.accessibility-options [aria-pressed="true"] .accessibility-switch::after {transform:translateX(16px);}
+.accessibility-note {margin:8px 0 0; font-size:12px; line-height:1.5; color:#4a5578; text-align:center;}
+.accessibility-actions {display:grid; gap:8px; margin-top:20px;}
 .accessibility-actions button {min-height:44px; padding:10px 14px; border:1px solid #b8c5e6; border-radius:999px; background:none; color:#000d49; font:700 14px Avenir,Arial,sans-serif; cursor:pointer;}
-.accessibility-actions [data-reset] {background:var(--color-blue); border-color:var(--color-blue); color:#fff; transition:background-color .2s ease, border-color .2s ease;}
-.accessibility-actions [data-reset]:hover,.accessibility-actions [data-reset]:focus-visible {background:var(--color-blue-dark); border-color:var(--color-blue-dark);}
+.accessibility-actions [data-reset] {display:flex; align-items:center; justify-content:center; gap:0; background:var(--color-blue); border-color:transparent; color:#fff; transition:gap .25s ease,filter .25s ease;}
+.accessibility-reset-arrow {display:inline-flex; align-items:center; flex-shrink:0; width:18px; max-width:0; overflow:hidden; opacity:0; transform:translateX(-8px); transition:max-width .25s ease,opacity .25s ease,transform .25s ease;}
+.accessibility-reset-arrow img {display:block; width:18px; height:12px; max-width:none;}
+.accessibility-actions [data-reset]:is(:hover,:focus-visible) {gap:10px; filter:brightness(.9);}
+.accessibility-actions [data-reset]:is(:hover,:focus-visible) .accessibility-reset-arrow {max-width:18px; opacity:1; transform:translateX(0);}
+@media(prefers-reduced-motion:reduce) {.accessibility-reset-arrow {transition:none;}}
 @media(prefers-reduced-motion:reduce) {.accessibility-actions [data-reset] {transition:none;}}
 .accessibility-status {margin:8px 0 0; font-size:13px;}
 .accessibility-status:empty {display:none;}
 .accessibility-panel button:focus-visible,.accessibility-launch:focus-visible,.accessibility-footer-trigger:focus-visible {outline:3px solid #a8bcff; outline-offset:3px;}
 @media(max-width:650px) {
-  .accessibility-panel {inset: auto 16px 16px; width:calc(100% - 32px); max-height:calc(100dvh - 32px); padding:20px; margin:0;}
+  .accessibility-panel {--accessibility-panel-padding:20px; inset: auto 16px 16px; width:calc(100% - 32px); max-height:calc(100dvh - 32px); padding:20px; margin:0;}
   .accessibility-panel h2 {font-size:21px;}
   .accessibility-heading {gap:8px;}
   .accessibility-launch {--accessibility-launch-size:48px; width:48px; height:48px;}
