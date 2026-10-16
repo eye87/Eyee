@@ -6691,6 +6691,16 @@ body.menu-open {
   height: 28px;
 }
 
+@media (max-width: 650px) {
+  .work-reel .video-toggle {
+    left: 20px;
+    right: auto;
+    bottom: 20px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 .work-reel .video-toggle[data-paused="true"] .video-icon-pause,
 .work-reel .video-toggle[data-paused="false"] .video-icon-play {
   display: none;

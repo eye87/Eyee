@@ -34,11 +34,15 @@
   let placementFrame = 0;
   function positionLauncher() {
     placementFrame = 0;
+    // Follow Safari's visible area when its browser bars expand or collapse.
+    const viewport = window.visualViewport;
+    const visibleBottom = viewport ? viewport.offsetTop + viewport.height : innerHeight;
+    launch.style.setProperty('--accessibility-viewport-bottom', `${visibleBottom}px`);
     if (!footerBar || !footerLanguage) return;
     const button = launch.getBoundingClientRect();
     const language = footerLanguage.getBoundingClientRect();
     const needsRoom = button.left < language.right + 20 && button.right > language.left - 20;
-    const offset = needsRoom ? Math.max(0, innerHeight - footerBar.getBoundingClientRect().top) : 0;
+    const offset = needsRoom ? Math.max(0, visibleBottom - footerBar.getBoundingClientRect().top) : 0;
     launch.style.setProperty('--accessibility-footer-offset', `${offset}px`);
   }
   function scheduleLauncherPlacement() {
@@ -46,6 +50,9 @@
   }
   addEventListener('scroll', scheduleLauncherPlacement, {passive:true});
   addEventListener('resize', scheduleLauncherPlacement, {passive:true});
+  window.visualViewport?.addEventListener('resize', scheduleLauncherPlacement, {passive:true});
+  window.visualViewport?.addEventListener('scroll', scheduleLauncherPlacement, {passive:true});
+  addEventListener('pageshow', scheduleLauncherPlacement);
   if (footerBar && 'ResizeObserver' in window) {
     const footerObserver = new ResizeObserver(scheduleLauncherPlacement);
     footerObserver.observe(footerBar);
