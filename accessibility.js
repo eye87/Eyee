@@ -1,14 +1,15 @@
 /* Optional reading preferences; native browser zoom and keyboard controls stay available. */
 (() => {
   const root = document.documentElement;
-  // Let CSS track the dynamic viewport without document-scroll positioning.
+  // Stable iOS viewport with a modest 20px downward adjustment. Avoid dynamic
+  // toolbar tracking: fixed layers can be clipped during its transition.
   // Never track document scroll with absolute-positioned floating controls.
   const stableIOSViewport = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   root.toggleAttribute('data-ios-floating', stableIOSViewport);
   const viewportProbe = document.createElement('span');
   viewportProbe.setAttribute('aria-hidden', 'true');
-  viewportProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100dvh;visibility:hidden;pointer-events:none;';
+  viewportProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:calc(100svh + 20px);visibility:hidden;pointer-events:none;';
   if (stableIOSViewport) document.body.append(viewportProbe);
   const key = 'eyee-accessibility';
   const hiddenSessionKey = 'eyee-accessibility-hidden';
