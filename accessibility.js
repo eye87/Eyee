@@ -1,7 +1,7 @@
 /* Optional reading preferences; native browser zoom and keyboard controls stay available. */
 (() => {
   const root = document.documentElement;
-  // Stable iOS viewport with a modest 20px downward adjustment. Avoid dynamic
+  // Stable iOS viewport with a modest 10px downward adjustment. Avoid dynamic
   // toolbar tracking: fixed layers can be clipped during its transition.
   // Never track document scroll with absolute-positioned floating controls.
   const stableIOSViewport = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
@@ -9,8 +9,10 @@
   root.toggleAttribute('data-ios-floating', stableIOSViewport);
   const viewportProbe = document.createElement('span');
   viewportProbe.setAttribute('aria-hidden', 'true');
-  viewportProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:calc(100svh + 20px);visibility:hidden;pointer-events:none;';
+  viewportProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:calc(100svh + 10px);visibility:hidden;pointer-events:none;';
   if (stableIOSViewport) document.body.append(viewportProbe);
+  let iosViewportWidth = innerWidth;
+  let iosAnchorHeight = stableIOSViewport ? viewportProbe.getBoundingClientRect().height : 0;
   const key = 'eyee-accessibility';
   const hiddenSessionKey = 'eyee-accessibility-hidden';
   const defaults = {size: 100, contrast: false, dark: false, reading: false, motion: false, hidden: false};
@@ -76,8 +78,14 @@
     placementFrame = 0;
     // Follow Safari's visible area when its browser bars expand or collapse.
     const viewport = window.visualViewport;
-    const visibleBottom = stableIOSViewport ? viewportProbe.getBoundingClientRect().height : viewport ? viewport.offsetTop + viewport.height : innerHeight;
-    if (!stableIOSViewport) launch.style.setProperty('--accessibility-viewport-bottom', `${visibleBottom}px`);
+    // Freeze the anchor while Safari changes its chrome. Recalculate only
+    // when the screen width changes (rotation / split-view), not bar height.
+    if (stableIOSViewport && innerWidth !== iosViewportWidth) {
+      iosViewportWidth = innerWidth;
+      iosAnchorHeight = viewportProbe.getBoundingClientRect().height;
+    }
+    const visibleBottom = stableIOSViewport ? iosAnchorHeight : viewport ? viewport.offsetTop + viewport.height : innerHeight;
+    launch.style.setProperty('--accessibility-viewport-bottom', `${visibleBottom}px`);
     if (!footerBar || !footerLanguage) return;
     const button = launch.getBoundingClientRect();
     const language = footerLanguage.getBoundingClientRect();
