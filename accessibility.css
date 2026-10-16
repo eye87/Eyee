@@ -1,7 +1,7 @@
 .accessibility-launch {
   position: fixed;
   right: 20px;
-  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px) + var(--accessibility-footer-offset, 0px));
   z-index: 90;
   display: grid;
   place-items: center;

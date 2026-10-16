@@ -2907,17 +2907,13 @@ body {
   transition: translate 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.service-panel:hover .research-person,
-.service-panel:focus-visible .research-person,
-.service-panel:hover .service-art i:first-child,
-.service-panel:focus-visible .service-art i:first-child {
+:is(.service-panel,.expertise-pillar):is(:hover,:focus-visible) .research-person,
+:is(.service-panel,.expertise-pillar):is(:hover,:focus-visible) .service-art i:first-child {
   translate: 4px 2px;
 }
 
-.service-panel:hover .research-lens,
-.service-panel:focus-visible .research-lens,
-.service-panel:hover .service-art i + i,
-.service-panel:focus-visible .service-art i + i {
+:is(.service-panel,.expertise-pillar):is(:hover,:focus-visible) .research-lens,
+:is(.service-panel,.expertise-pillar):is(:hover,:focus-visible) .service-art i + i {
   translate: -4px -3px;
 }
 
@@ -2935,7 +2931,7 @@ body {
     scale: 1;
   }
 
-  .service-panel .service-art * {
+  :is(.service-panel,.expertise-pillar) .service-art * {
     translate: none !important;
   }
 }
@@ -7728,3 +7724,31 @@ h2,
     transition: none;
   }
 }
+
+/* The tiny eye transition is available immediately; the game itself loads on demand. */
+.eye-egg-wash {
+  position: fixed;
+  z-index: 9997;
+  inset: 0;
+  background: #000d49;
+  clip-path: circle(var(--eye-radius, 0px) at var(--eye-x, 50%) var(--eye-y, 50%));
+  pointer-events: none;
+  visibility: hidden;
+}
+.eye-egg-wash.is-active { visibility: visible; }
+.eye-egg-bloom {
+  position: fixed;
+  z-index: 9998;
+  width: 42px;
+  height: 42px;
+  left: var(--eye-x, 50%);
+  top: var(--eye-y, 50%);
+  background: #3558fd;
+  -webkit-mask: url("assets/beeldmerk.svg") center / contain no-repeat;
+  mask: url("assets/beeldmerk.svg") center / contain no-repeat;
+  transform: translate(-50%, -50%) scale(var(--eye-scale, 0));
+  transform-origin: center;
+  pointer-events: none;
+  opacity: 0;
+}
+.eye-egg-bloom.is-active { opacity: var(--eye-bloom-opacity, 1); }

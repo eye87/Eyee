@@ -1,4 +1,33 @@
 /* Mobile navigation shares the homepage palette and typography. */
+#menu [hidden] {display:none !important;}
+#menu .mobile-expertise-trigger {display:flex; align-items:center; justify-content:space-between; width:100%; padding:19px 0; border:0; background:none; color:#fff; text-align:left; font:700 clamp(22px,3.1vw,30px)/1.15 "GT Walsheim Pro",Avenir,Arial,sans-serif; cursor:pointer;}
+#menu .mobile-expertise-trigger > span:first-child {margin-left:0; font-size:inherit; font-weight:inherit; color:inherit;}
+#menu .mobile-expertise-trigger > span:last-child {margin-left:auto; color:var(--color-blue-light); font-size:29px; font-weight:400; transition:transform .2s ease;}
+#menu .mobile-expertise-trigger {letter-spacing:-.055em;}
+#menu .mobile-expertise-trigger:hover {color:var(--color-blue-light);}
+#menu .mobile-expertise-trigger:hover > span:last-child {transform:translateX(4px);}
+#mobile-expertise {animation:mobile-submenu-enter .3s cubic-bezier(.16,1,.3,1) both;}
+#menu .mobile-menu-back {position:absolute; left:var(--menu-brand-left,41px); top:calc(var(--menu-brand-top,31px) + var(--menu-brand-height,31px)/2 - 22px); display:flex; align-items:center; gap:10px; min-height:44px; margin:0; padding:0; border:0; background:none; color:#fff; font:500 18px/1.4 "GT Walsheim Pro",Avenir,Arial,sans-serif; cursor:pointer;}
+#menu .mobile-menu-back > span:first-child {position:relative; top:2px; font-size:29px; font-weight:400; color:var(--color-blue-light);}
+#menu .mobile-menu-back:hover {color:var(--color-blue-light);}
+#menu .mobile-menu-back {top:var(--menu-close-top,31px); height:44px;}
+#mobile-expertise .expertise-primary,#mobile-expertise .expertise-practical {padding:0; background:none; border-radius:0;}
+#mobile-expertise h2 {margin:0 0 18px; color:var(--color-blue-light); font:700 15px/1.35 "GT Walsheim Pro",Avenir,Arial,sans-serif;}
+#mobile-expertise .expertise-pillars {gap:4px;}
+#mobile-expertise .expertise-pillar {display:flex; align-items:center; gap:14px; padding:12px 0; color:#fff; text-decoration:none;}
+#mobile-expertise .expertise-pillar-copy strong {font-size:19px;}
+#mobile-expertise .expertise-description {font-size:13px; color:#c5cffa;}
+#mobile-expertise .expertise-title {gap:0;}
+#mobile-expertise .expertise-pillar-tech {background:#142264;}
+#mobile-expertise .expertise-pillar-icon .service-art {display:block; left:calc(50% - 40px); top:calc(50% - 40px); margin:0; transform-origin:40px 40px; transform:scale(.36);}
+#mobile-expertise .expertise-practical {margin-top:34px;}
+#mobile-expertise .expertise-practical a {display:flex; align-items:center; min-height:44px; padding:10px 0; color:#fff; font:400 16px/1.4 Avenir,Arial,sans-serif; text-decoration:none;}
+#mobile-expertise .expertise-practical a:is(:hover,:focus-visible),#mobile-expertise .expertise-pillar:is(:hover,:focus-visible) {color:var(--color-blue-light);}
+@keyframes mobile-submenu-enter {from {opacity:0; transform:translateX(16px);} to {opacity:1; transform:translateX(0);}}
+@media(max-width:650px) {#menu .mobile-expertise-trigger {padding:18px 0; font-size:23px;}}
+@media(max-height:650px) {#menu .mobile-expertise-trigger {padding:8px 0; font-size:21px;}}
+@media(prefers-reduced-motion:reduce) {#mobile-expertise {animation:none;}}
+html[data-a11y-motion] #mobile-expertise {animation:none;}
 #menu {
   display: none;
   flex-direction: column;
@@ -59,6 +88,10 @@
 }
 #menu.is-icon-open .menu-layout {opacity:1; transform:translateY(0);}
 #menu.is-closing .menu-layout {opacity:0; transform:translateY(8px); transition-duration:.18s; transition-timing-function:cubic-bezier(.4,0,1,1);}
+#menu.is-submenu .menu-layout {margin-top:48px;}
+#menu.is-submenu .menu-top {position:fixed; inset:0 0 auto; z-index:2; height:calc(var(--menu-close-top,31px) + 60px); background:var(--color-navy);}
+#menu.is-submenu {scroll-padding-top:calc(var(--menu-close-top,31px) + 76px);}
+#menu.is-submenu .menu-bottom {display:none;}
 #menu .menu-layout nav {margin:0;}
 #menu .menu-layout nav a {
   padding: 19px 0;
@@ -103,7 +136,11 @@
   white-space: nowrap;
   transition: background-color .2s ease;
 }
-#menu .menu-call:hover {background:var(--color-blue-dark);}
+#menu .menu-call:hover,#menu .menu-call:focus-visible {background:var(--color-blue);}
+#menu .menu-call > svg {flex-shrink:0;}
+#menu .menu-call-arrow {display:grid; place-items:center; flex-shrink:0; width:0; margin-left:-10px; overflow:hidden; opacity:0; transition:width .25s ease,margin-left .25s ease,opacity .25s ease;}
+#menu .menu-call-arrow img {display:block; width:18px; max-width:none; height:12px;}
+#menu .menu-call:hover .menu-call-arrow,#menu .menu-call:focus-visible .menu-call-arrow {width:18px; margin-left:0; opacity:1;}
 #menu a:focus-visible,#menu button:focus-visible {outline:2px solid var(--color-blue-light); outline-offset:4px;}
 @media(max-width:650px) {
   #menu .menu-top {min-height:44px; padding:0; transform:none;}
@@ -132,7 +169,7 @@
 @media(prefers-reduced-motion:reduce) {.menu-icon line,#menu .menu-close .menu-icon {transition:none;}}
 @media(prefers-reduced-motion:reduce) {
   #menu,#menu .menu-layout {opacity:1; transform:none; transition:none;}
-  #menu a,#menu button,#menu .menu-layout nav a span {transition:none;}
+  #menu a,#menu button,#menu .menu-layout nav a span,#menu .menu-call-arrow {transition:none;}
   #menu .menu-layout nav a:hover span {transform:none;}
 }
 html[data-a11y-motion] #menu,

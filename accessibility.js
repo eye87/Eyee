@@ -29,6 +29,29 @@
     <p class="accessibility-note" data-copy="note"></p>
     <p class="accessibility-status" role="status"></p>`;
   document.body.append(launch, panel);
+  const footerBar = document.querySelector('.footer-legal');
+  const footerLanguage = document.querySelector('.footer-language');
+  let placementFrame = 0;
+  function positionLauncher() {
+    placementFrame = 0;
+    if (!footerBar || !footerLanguage) return;
+    const button = launch.getBoundingClientRect();
+    const language = footerLanguage.getBoundingClientRect();
+    const needsRoom = button.left < language.right + 20 && button.right > language.left - 20;
+    const offset = needsRoom ? Math.max(0, innerHeight - footerBar.getBoundingClientRect().top) : 0;
+    launch.style.setProperty('--accessibility-footer-offset', `${offset}px`);
+  }
+  function scheduleLauncherPlacement() {
+    if (!placementFrame) placementFrame = requestAnimationFrame(positionLauncher);
+  }
+  addEventListener('scroll', scheduleLauncherPlacement, {passive:true});
+  addEventListener('resize', scheduleLauncherPlacement, {passive:true});
+  if (footerBar && 'ResizeObserver' in window) {
+    const footerObserver = new ResizeObserver(scheduleLauncherPlacement);
+    footerObserver.observe(footerBar);
+    footerObserver.observe(document.body);
+  }
+  scheduleLauncherPlacement();
   const labels = {
     nl: {title:'Toegankelijkheid', size:'Tekstgrootte', increase:'Tekst vergroten', decrease:'Tekst verkleinen', close:'Sluiten', reset:'Instellingen herstellen', hide:'Zwevende knop verbergen', note:'Je voorkeuren blijven op dit apparaat bewaard.', restored:'Instellingen hersteld.', contrast:['Hoog contrast',''], dark:['Donkere modus',''], reading:['Leesvriendelijke tekst','Eenvoudiger lettertype, meer letterruimte.'], motion:['Minder beweging','Pauzeert video’s en animaties.']},
     en: {title:'Accessibility', size:'Text size', increase:'Increase text size', decrease:'Decrease text size', close:'Close', reset:'Reset settings', hide:'Hide floating button', note:'Your preferences are saved on this device.', restored:'Settings reset.', contrast:['High contrast',''], dark:['Dark mode',''], reading:['Reading-friendly text','Simpler typeface, more letter spacing.'], motion:['Reduce motion','Pauses videos and animations.']},
@@ -121,6 +144,8 @@
   let resizeTimer;
   addEventListener('resize', () => {clearTimeout(resizeTimer); resizeTimer=setTimeout(scaleText,150);});
   document.addEventListener('eyeelanguagechange', () => {localize(); if(preferences.size>100) scaleText();});
+  document.addEventListener('eyeelanguagechange', scheduleLauncherPlacement);
+  document.addEventListener('eyeeaccessibilitychange', scheduleLauncherPlacement);
   localize();
   document.fonts.ready.then(apply);
 })();

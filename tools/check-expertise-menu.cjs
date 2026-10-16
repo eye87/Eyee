@@ -1,0 +1,97 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const {pathToFileURL} = require('node:url');
+const {chromium} = require('/Users/jbrugman/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const root = path.resolve(__dirname, '..');
+const shots = path.join(root, '.refactor-reference', 'submenu');
+fs.mkdirSync(shots, {recursive:true});
+const url = pathToFileURL(path.join(root, 'index.html')).href;
+(async () => {
+  const browser = await chromium.launch({headless:true, executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+  try {
+    for (const [width, locale] of [[1024,'nl-NL'],[1440,'nl-NL'],[1728,'en-US']]) {
+      const page = await browser.newPage({viewport:{width,height:1000}, locale, reducedMotion:'reduce'});
+      const errors=[];
+      page.on('pageerror', error=>errors.push(error.message));
+      await page.goto(url,{waitUntil:'domcontentloaded'});
+      await page.evaluate(()=>document.fonts.ready);
+      const trigger=page.locator('.expertise-trigger');
+      const panel=page.locator('#expertise-panel');
+      await trigger.hover();
+      await page.waitForTimeout(150);
+      assert.equal(await panel.isVisible(),true);
+      assert.equal(await trigger.getAttribute('aria-expanded'),'true');
+      assert.equal(await panel.locator('.expertise-pillar').count(),3);
+      assert.equal(await panel.locator('.expertise-practical a').count(),9);
+      assert.equal(await panel.locator('.expertise-overview').count(),0);
+      assert.equal(await panel.locator('.expertise-pillar').first().evaluate(element=>getComputedStyle(element).paddingLeft),'24px');
+      const titleGap=await panel.locator('.expertise-title').first().evaluate(element=>{
+        const title=element.querySelector('strong').getBoundingClientRect();
+        const arrow=element.querySelector('.expertise-arrow').getBoundingClientRect();
+        return arrow.left-title.right;
+      });
+      assert.ok(Math.abs(titleGap-10)<1,'Pillar arrow must sit 10px after its title');
+      assert.equal(await panel.locator('.expertise-practical a').first().evaluate(element=>getComputedStyle(element,'::after').opacity),'0');
+      assert.match(await panel.locator('h2').first().innerText(),locale==='en-US'?/Our expertise/:/Onze expertise/);
+      assert.equal(await trigger.locator('.expertise-indicator').evaluate(e=>getComputedStyle(e,'::before').content),'"−"');
+      const bounds=await panel.boundingBox();
+      assert.ok(bounds.x>=0 && bounds.x+bounds.width<=width+1);
+      assert.ok(bounds.y+bounds.height<=1000);
+      assert.equal(await panel.evaluate(e=>e.scrollWidth<=e.clientWidth),true);
+      await panel.screenshot({path:path.join(shots,`desktop-${width}.png`)});
+      await panel.locator('.expertise-practical a').first().hover();
+      await page.waitForTimeout(250);
+      assert.equal(await panel.isVisible(),true,'Hovering from trigger into panel must not close it');
+      assert.equal(await panel.locator('.expertise-practical a').first().evaluate(element=>getComputedStyle(element,'::after').opacity),'1');
+      await page.keyboard.press('Escape');
+      assert.equal(await panel.isVisible(),false);
+      assert.equal(await trigger.evaluate(e=>e===document.activeElement),true);
+      await page.keyboard.press('ArrowDown');
+      assert.equal(await panel.locator('a').first().evaluate(e=>e===document.activeElement),true);
+      for(let i=0;i<12;i++) await page.keyboard.press('Tab');
+      assert.equal(await panel.isVisible(),false,'Tabbing out must close the disclosure');
+      await page.evaluate(()=>scrollTo(0,700));
+      await page.waitForTimeout(400);
+      await trigger.focus();
+      await page.keyboard.press('Enter');
+      assert.equal(await panel.isVisible(),true);
+      const compact=await panel.boundingBox();
+      assert.ok(compact.x>=0 && compact.x+compact.width<=width+1);
+      await page.screenshot({path:path.join(shots,`compact-${width}.png`)});
+      await page.mouse.click(8,900);
+      assert.equal(await panel.isVisible(),false,'Outside click must dismiss');
+      await trigger.focus();
+      await page.keyboard.press('Enter');
+      await page.setViewportSize({width:820,height:1000});
+      assert.equal(await panel.isVisible(),false,'Desktop submenu must close at mobile breakpoint');
+      assert.equal(await page.locator('.menu-toggle').isVisible(),true);
+      assert.deepEqual(errors,[]);
+      console.log(`${width}px ${locale}: hover, keyboard, all links, compact header and responsive checks passed`);
+      await page.close();
+    }
+    const touch = await browser.newPage({viewport:{width:1280,height:900},hasTouch:true});
+    await touch.goto(url,{waitUntil:'domcontentloaded'});
+    await touch.locator('.expertise-trigger').tap();
+    assert.equal(await touch.locator('#expertise-panel').isVisible(),true);
+    await touch.locator('.expertise-trigger').tap();
+    assert.equal(await touch.locator('#expertise-panel').isVisible(),false);
+    console.log('Touch desktop: tap to open and close passed');
+    await touch.close();
+    const motion=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'no-preference'});
+    await motion.goto(url,{waitUntil:'domcontentloaded'});
+    await motion.locator('.expertise-trigger').hover();
+    await motion.waitForTimeout(150);
+    for(const kind of ['research','design','tech']) {
+      const row=motion.locator(`.expertise-pillar:has(.expertise-pillar-${kind})`);
+      await row.hover();
+      await motion.waitForTimeout(500);
+      const part=row.locator(kind==='research'?'.research-person':'.service-art i').first();
+      assert.equal(await part.evaluate(element=>getComputedStyle(element).translate),'4px 2px');
+      assert.equal(await row.locator('.expertise-arrow').evaluate(element=>getComputedStyle(element).color),'rgb(53, 88, 253)');
+    }
+    await motion.locator('#expertise-panel').screenshot({path:path.join(shots,'hover-refined.png')});
+    await motion.close();
+    console.log('All three icons share homepage motion; hovered arrows turn blue');
+  } finally {await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

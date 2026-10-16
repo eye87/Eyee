@@ -1,0 +1,104 @@
+.header .desktop-nav {align-items:center;}
+.expertise-nav {display:flex; align-items:center;}
+.header .expertise-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .2s ease;
+}
+.header .expertise-trigger:hover,.header .expertise-trigger[aria-expanded="true"] {color:var(--color-blue);}
+.expertise-indicator {display:inline-grid; place-items:center; flex:0 0 14px; color:var(--color-blue); font:400 24px/1 "GT Walsheim Pro",Avenir,Arial,sans-serif; transition:color .2s ease;}
+.expertise-indicator::before {content:'+';}
+.expertise-trigger[aria-expanded="true"] .expertise-indicator::before {content:'−';}
+.expertise-trigger:hover .expertise-indicator,.expertise-trigger:focus-visible .expertise-indicator,.expertise-trigger[aria-expanded="true"] .expertise-indicator {color:var(--color-blue);}
+.expertise-panel {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  --submenu-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 9'%3E%3Cpath d='M9.21875.09375C9.375-.03125 9.59375-.03125 9.75.09375L13.875 4.21875C14 4.375 14 4.59375 13.875 4.75L9.75 8.875C9.59375 9 9.375 9 9.21875 8.875L8.59375 8.25C8.46875 8.09375 8.46875 7.875 8.625 7.71875L11.125 5.28125H.375C.15625 5.28125 0 5.125 0 4.90625V4.03125C0 3.84375.15625 3.65625.375 3.65625H11.125L8.625 1.25C8.46875 1.09375 8.46875.875 8.59375.71875Z' fill='white'/%3E%3C/svg%3E");
+  grid-template-columns: minmax(0,calc(50% + 17px)) minmax(0,1fr);
+  width: min(850px, calc(100vw - 48px));
+  max-height: var(--expertise-max-height,calc(100dvh - 140px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #dce3f5;
+  border-radius: 28px;
+  background: #fff;
+  color: var(--color-navy);
+  box-shadow: 0 20px 64px #000d4926;
+  white-space: normal;
+  animation: expertise-enter .24s cubic-bezier(.16,1,.3,1) both;
+}
+.expertise-panel[hidden],.expertise-scrim[hidden] {display:none;}
+.expertise-panel::before {content:''; position:absolute; top:-15px; left:0; width:100%; height:15px;}
+.expertise-primary {padding:30px 28px 24px;}
+.expertise-panel h2 {margin:0 0 20px; font:700 18px/1.35 "GT Walsheim Pro",Avenir,Arial,sans-serif; letter-spacing:-.015em; color:var(--color-navy);}
+.expertise-pillars {display:grid; gap:4px;}
+.header .desktop-nav .expertise-pillar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 92px;
+  padding: 15px 24px;
+  margin-inline: -12px;
+  border-radius: 18px;
+  color: var(--color-navy);
+  text-decoration: none;
+  transition: background-color .2s ease;
+}
+.header .desktop-nav .expertise-pillar:hover,.header .desktop-nav .expertise-pillar:focus-visible {background:#eef2ff; color:var(--color-blue); opacity:1;}
+.expertise-pillar-icon {position:relative; display:grid; place-items:center; flex:0 0 48px; height:48px; border-radius:15px;}
+.expertise-pillar-icon .service-art {position:absolute; left:50%; top:50%; width:80px; height:80px; transform:translate(-50%,-50%) scale(.36);}
+.expertise-pillar-icon .service-art i {left:0;}
+.expertise-pillar-icon .service-art i + i {left:24px;}
+.expertise-pillar-research {background:#eef2ff; color:var(--color-blue);}
+.expertise-pillar-design {background:var(--color-blue); color:#fff;}
+.expertise-pillar-tech {background:var(--color-navy); color:var(--color-blue-light);}
+.expertise-pillar-copy {display:grid; gap:6px; min-width:0;}
+.expertise-title {display:inline-flex; align-items:center; gap:10px; width:fit-content; max-width:100%;}
+.expertise-pillar-copy strong {font:700 21px/1.2 "GT Walsheim Pro",Avenir,Arial,sans-serif; letter-spacing:-.025em;}
+.expertise-description {color:#52607e; font:400 14px/1.45 Avenir,Arial,sans-serif;}
+.expertise-arrow {display:inline-block; flex:0 0 18px; width:18px; height:12px; color:var(--color-blue-light); background:currentColor; -webkit-mask:var(--submenu-arrow) center / contain no-repeat; mask:var(--submenu-arrow) center / contain no-repeat; transition:color .2s ease,transform .2s ease;}
+.expertise-pillar:hover .expertise-arrow,.expertise-pillar:focus-visible .expertise-arrow {color:var(--color-blue); animation:expertise-arrow-bounce .45s cubic-bezier(.22,1,.36,1) both;}
+.expertise-practical {padding:30px 20px 24px 40px; background:#f3f5ff; border-radius:0 27px 27px 0;}
+.expertise-practical ul {list-style:none; margin:0; padding:0;}
+.header .expertise-practical a {display:flex; align-items:center; justify-content:flex-start; gap:10px; min-height:36px; padding:6px 0; font:400 15px/1.4 Avenir,Arial,sans-serif; color:var(--color-navy); text-decoration:none;}
+.expertise-practical a::after {content:''; flex:0 0 18px; width:18px; height:12px; background:var(--color-blue); -webkit-mask:var(--submenu-arrow) center / contain no-repeat; mask:var(--submenu-arrow) center / contain no-repeat; opacity:0; transform:translateX(-4px); transition:opacity .2s ease,transform .25s cubic-bezier(.22,1,.36,1);}
+.header .expertise-practical a:hover,.header .expertise-practical a:focus-visible {color:var(--color-blue); opacity:1;}
+.expertise-practical a:hover::after,.expertise-practical a:focus-visible::after {opacity:1; transform:translateX(0);}
+.expertise-arrow,.expertise-practical a::after {display:none;}
+.expertise-practical a > span {display:inline-block; transition:transform .25s cubic-bezier(.22,1,.36,1);}
+.expertise-practical a:is(:hover,:focus-visible) > span {transform:translateX(6px);}
+html[data-a11y-motion] .expertise-practical a > span {transition:none; transform:none;}
+.expertise-scrim {position:fixed; inset:0; z-index:50; background:#000d492b; animation:expertise-scrim-enter .2s ease both;}
+body.expertise-open .header {z-index:60;}
+.header .expertise-trigger:focus-visible,.expertise-panel a:focus-visible {outline:2px solid var(--color-blue); outline-offset:4px;}
+@keyframes expertise-enter {from {opacity:0; transform:translate(-50%,8px);} to {opacity:1; transform:translate(-50%,0);}}
+@keyframes expertise-scrim-enter {from {opacity:0;} to {opacity:1;}}
+@keyframes expertise-arrow-bounce {0% {transform:translateX(0);} 45% {transform:translateX(7px);} 72% {transform:translateX(2px);} 100% {transform:translateX(4px);}}
+@media(max-width:1100px) {
+  .expertise-primary,.expertise-practical {padding:26px 24px 20px;}
+  .expertise-practical {padding-left:34px; padding-right:14px;}
+  .expertise-pillar-copy strong {font-size:20px;}
+  .expertise-description {font-size:13px;}
+}
+@media(max-width:900px) {.expertise-panel,.expertise-scrim {display:none;}}
+html:is([data-a11y-dark],[data-a11y-contrast]) .expertise-panel,
+html:is([data-a11y-dark],[data-a11y-contrast]) .expertise-primary,
+html:is([data-a11y-dark],[data-a11y-contrast]) .expertise-practical {background:#15203f; color:#fff;}
+html:is([data-a11y-dark],[data-a11y-contrast]) .expertise-panel h2 {color:#fff;}
+@media(prefers-reduced-motion:reduce) {
+  .expertise-practical a > span {transition:none; transform:none !important;}
+  .expertise-panel,.expertise-scrim {animation:none;}
+  .expertise-indicator,.expertise-panel a,.expertise-arrow,.expertise-practical a::after {transition:none;}
+  .expertise-pillar:hover .expertise-arrow,.expertise-pillar:focus-visible .expertise-arrow {animation:none; transform:none;}
+}

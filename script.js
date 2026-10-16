@@ -10,6 +10,41 @@ if (isPageReload) {
 }
 const menu = document.querySelector('#menu');
 const toggle = document.querySelector('.menu-toggle');
+// Reuse the desktop content so both navigation levels stay in sync.
+const mobileMain = menu.querySelector('.menu-layout > div:first-child');
+const mobileExpertiseTrigger = document.createElement('button');
+mobileExpertiseTrigger.type = 'button';
+mobileExpertiseTrigger.className = 'mobile-expertise-trigger';
+mobileExpertiseTrigger.setAttribute('aria-expanded', 'false');
+mobileExpertiseTrigger.setAttribute('aria-controls', 'mobile-expertise');
+mobileExpertiseTrigger.innerHTML = '<span>Expertises</span><span aria-hidden="true">→</span>';
+mobileMain.querySelector('nav a').replaceWith(mobileExpertiseTrigger);
+const mobileExpertise = document.createElement('section');
+mobileExpertise.id = 'mobile-expertise';
+mobileExpertise.hidden = true;
+mobileExpertise.innerHTML = '<button type="button" class="mobile-menu-back"><span aria-hidden="true">←</span> <span>Terug</span></button>';
+for (const selector of ['.expertise-primary', '.expertise-practical']) {
+  const copy = document.querySelector(selector).cloneNode(true);
+  copy.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+  mobileExpertise.append(copy);
+}
+mobileMain.after(mobileExpertise);
+const mobileMenuBack = mobileExpertise.querySelector('.mobile-menu-back');
+menu.querySelector('.menu-top').append(mobileMenuBack);
+mobileMenuBack.hidden = true;
+function setMobileExpertise(open, focus = true) {
+  mobileMain.hidden = open;
+  mobileExpertise.hidden = !open;
+  menu.classList.toggle('is-submenu', open);
+  menu.querySelector('.menu-brand').hidden = open;
+  mobileMenuBack.hidden = !open;
+  mobileExpertiseTrigger.setAttribute('aria-expanded', String(open));
+  menu.scrollTop = 0;
+  if (focus) (open ? mobileMenuBack : mobileExpertiseTrigger).focus({preventScroll:true});
+}
+mobileExpertiseTrigger.addEventListener('click', () => setMobileExpertise(true));
+mobileMenuBack.addEventListener('click', () => setMobileExpertise(false));
+menu.addEventListener('close', () => setMobileExpertise(false, false));
 let menuCloseTimer;
 let menuIsClosing=false;
 let menuInput='pointer';
@@ -65,7 +100,7 @@ function closeMenu(){
  if(reduced.matches)menu.close();
  else menuCloseTimer=setTimeout(()=>menu.close(),210);
 }
-menu.addEventListener('cancel',event=>{event.preventDefault();closeMenu();});
+menu.addEventListener('cancel',event=>{event.preventDefault();if(!mobileExpertise.hidden)setMobileExpertise(false);else closeMenu();});
 menu.addEventListener('requestclose',closeMenu);
 document.querySelector('.menu-close').addEventListener('click', closeMenu);
 menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
