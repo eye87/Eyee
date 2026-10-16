@@ -142,6 +142,7 @@ html[data-a11y-motion] #mobile-expertise {animation:none;}
 #menu .menu-call-arrow img {display:block; width:18px; max-width:none; height:12px;}
 #menu .menu-call:hover .menu-call-arrow,#menu .menu-call:focus-visible .menu-call-arrow {width:18px; margin-left:0; opacity:1;}
 #menu a:focus-visible,#menu button:focus-visible {outline:2px solid var(--color-blue-light); outline-offset:4px;}
+#menu[data-input="pointer"] :is(a,button):focus {outline:none!important;}
 @media(max-width:650px) {
   #menu .menu-top {min-height:44px; padding:0; transform:none;}
   #menu .menu-layout {margin-top:58px; gap:28px;}

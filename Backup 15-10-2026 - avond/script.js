@@ -1,0 +1,598 @@
+const isPageReload = performance.getEntriesByType('navigation')[0]?.type === 'reload';
+if (isPageReload) {
+  history.scrollRestoration = 'manual';
+  if (location.hash) history.replaceState(history.state, '', location.pathname + location.search);
+  const resetReloadPosition = () => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  };
+  addEventListener('pageshow', resetReloadPosition, { once: true });
+}
+const menu = document.querySelector('#menu');
+const toggle = document.querySelector('.menu-toggle');
+toggle.addEventListener('click', () => { menu.showModal(); document.body.classList.add('menu-open'); toggle.setAttribute('aria-expanded','true'); });
+function closeMenu(){ menu.close(); }
+document.querySelector('.menu-close').addEventListener('click', closeMenu);
+menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
+menu.addEventListener('close',()=>{document.body.classList.remove('menu-open');toggle.setAttribute('aria-expanded','false');toggle.focus({preventScroll:true});});
+const video = document.querySelector('#reel');
+const videoButton = document.querySelector('#video-toggle');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const footerDirectory = document.querySelector('.footer-directory');
+if (footerDirectory) {
+  const mobileFooter = matchMedia('(max-width: 650px)');
+  const sections = Array.from(footerDirectory.children);
+  const contactSection = sections[sections.length - 1];
+  const accordionSections = sections.map((section, index) => {
+    const heading = section.querySelector('h3');
+    const label = document.createElement('span');
+    label.textContent = heading.textContent;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'footer-section-toggle';
+    button.textContent = heading.textContent;
+    button.hidden = true;
+    const content = document.createElement('div');
+    content.id = `footer-section-${index}`;
+    content.className = 'footer-section-content';
+    while (heading.nextSibling) content.append(heading.nextSibling);
+    heading.replaceChildren(label, button);
+    section.append(content);
+    button.setAttribute('aria-controls', content.id);
+    let expanded = section === contactSection;
+    const update = () => {
+      button.hidden = !mobileFooter.matches;
+      label.hidden = mobileFooter.matches;
+      content.hidden = mobileFooter.matches && !expanded;
+      button.setAttribute('aria-expanded', String(expanded));
+    };
+    button.addEventListener('click', () => {
+      expanded = !expanded;
+      update();
+    });
+    return update;
+  });
+  const updateFooterAccordion = () => {
+    if (mobileFooter.matches) footerDirectory.prepend(contactSection);
+    else sections.forEach((section) => footerDirectory.append(section));
+    accordionSections.forEach((update) => update());
+  };
+  mobileFooter.addEventListener('change', updateFooterAccordion);
+  updateFooterAccordion();
+}
+const footerConversation = document.querySelector('.footer');
+const footerEye = document.querySelector('.footer-brand-mark');
+const eyePointer = matchMedia('(hover: hover) and (pointer: fine)');
+if (footerConversation && footerEye) {
+  const eyeArea = footerEye.parentElement;
+  const eyeTracking = document.createElement('span');
+  eyeTracking.className = 'footer-eye-tracking';
+  eyeArea.append(eyeTracking);
+  eyeTracking.append(footerEye);
+  let eyeHovered = false;
+  let eyeAngle = 0;
+  let eyeTargetAngle = 0;
+  let eyeFrame = 0;
+  let eyeLastTime = 0;
+  const angleDifference = (target, current) => ((target - current + 540) % 360 + 360) % 360 - 180;
+  const renderEye = (time) => {
+    eyeFrame = 0;
+    const elapsed = eyeLastTime ? Math.min(64, time - eyeLastTime) : 16;
+    eyeLastTime = time;
+    const difference = angleDifference(eyeTargetAngle, eyeAngle);
+    eyeAngle += difference * (1 - Math.exp(-elapsed / 85));
+    eyeTracking.style.transform = `rotate(${eyeAngle}deg)`;
+    if (Math.abs(difference) > 0.05 && !eyeHovered) {
+      eyeFrame = requestAnimationFrame(renderEye);
+    } else {
+      eyeLastTime = 0;
+    }
+  };
+  const scheduleEye = () => {
+    if (!eyeFrame && !eyeHovered) eyeFrame = requestAnimationFrame(renderEye);
+  };
+  const resetEye = () => {
+    eyeTargetAngle = 0;
+    if (reduced.matches || !eyePointer.matches) {
+      cancelAnimationFrame(eyeFrame);
+      eyeFrame = 0;
+      eyeLastTime = 0;
+      eyeAngle = 0;
+      eyeTracking.style.transform = 'rotate(0deg)';
+    } else {
+      scheduleEye();
+    }
+  };
+  footerConversation.addEventListener('pointermove', (event) => {
+    if (reduced.matches || !eyePointer.matches || eyeHovered) return;
+    const bounds = eyeArea.getBoundingClientRect();
+    const dx = event.clientX - (bounds.left + bounds.width / 2);
+    const dy = event.clientY - (bounds.top + bounds.height / 2);
+    eyeTargetAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+    scheduleEye();
+  }, { passive: true });
+  const eyeHoverTargets = [eyeArea, footerConversation.querySelector('.footer-start')].filter(Boolean);
+  eyeHoverTargets.forEach((target) => {
+    target.addEventListener('pointerenter', () => {
+      eyeHovered = true;
+      cancelAnimationFrame(eyeFrame);
+      eyeFrame = 0;
+      eyeLastTime = 0;
+      eyeArea.classList.add('is-eye-hovered');
+    });
+    target.addEventListener('pointerleave', () => {
+      eyeHovered = false;
+      eyeArea.classList.remove('is-eye-hovered');
+      scheduleEye();
+    });
+  });
+  footerConversation.addEventListener('pointerleave', resetEye);
+  reduced.addEventListener('change', resetEye);
+  eyePointer.addEventListener('change', resetEye);
+}
+let manualPause = false;
+let manualVideoPlay = false;
+function videoState(){const paused=video.paused;videoButton.dataset.paused=String(paused);videoButton.setAttribute('aria-label',paused?'Projectvideo afspelen':'Projectvideo pauzeren');}
+video.addEventListener('play',videoState); video.addEventListener('pause',videoState);
+videoState();
+videoButton.addEventListener('click',()=>{if(video.paused){manualPause=false;manualVideoPlay=true;video.play().catch(()=>videoState());}else{manualPause=true;manualVideoPlay=false;video.pause();}});
+new IntersectionObserver(entries=>{if(!entries[0].isIntersecting){video.pause();}else if(!manualPause&&(!reduced.matches||manualVideoPlay)){video.play().catch(()=>videoState());}},{threshold:.15}).observe(video);
+const track=document.querySelector('.reel-track');const frame=document.querySelector('.reel-frame');let scheduled=false;
+function updateReel(){
+  scheduled=false;
+  if(reduced.matches){frame.style.width='100%';frame.style.height='';frame.style.transform='';frame.style.setProperty('--reel-radius','0px');return;}
+  const rect=track.getBoundingClientRect();
+  if(innerWidth<=650 || matchMedia('(min-width: 651px) and (max-width: 1100px) and (orientation: portrait)').matches){
+    const viewport=track.querySelector('.reel-sticky').getBoundingClientRect().height || innerHeight;
+    const clamp=value=>Math.max(0,Math.min(1,value));
+    const widthProgress=clamp((viewport*.6-rect.top)/(viewport*.7));
+    const fillProgress=clamp((-rect.top-viewport*.1)/(viewport*.55));
+    const width=70+30*widthProgress;
+    const videoHeight=rect.width*width/100*9/16;
+    frame.style.width=`${width}%`;
+    frame.style.height=`${videoHeight+(viewport-videoHeight)*fillProgress}px`;
+    frame.style.transform=`translateY(${-viewport*.18*(1-fillProgress)}px)`;
+    frame.style.setProperty('--reel-radius',`${18*(1-widthProgress)}px`);
+    return;
+  }
+  frame.style.height='';
+  frame.style.transform='';
+  const progress=Math.max(0,Math.min(1,(innerHeight*.62-rect.top)/Math.max(280,innerHeight*.75)));
+  const start=46;
+  const end=100;
+  frame.style.width=`${start+(end-start)*progress}%`;
+  frame.style.setProperty('--reel-radius',`${18*(1-progress)}px`);
+}
+addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(updateReel);}},{passive:true});addEventListener('resize',updateReel);reduced.addEventListener('change',()=>{if(reduced.matches)video.pause();updateReel();});updateReel();
+
+const floatingHeader = document.querySelector('.header');
+let headerTicking = false;
+function wiggleHeaderMark(){
+  if(reduced.matches)return;
+  const compact=floatingHeader.classList.contains('is-compact');
+  const mark=floatingHeader.querySelector(compact?'.brand-symbol':'.brand-eye>path');
+  if(!mark || !mark.animate)return;
+  if(floatingHeader.markWiggle)floatingHeader.markWiggle.cancel();
+  floatingHeader.markWiggle=mark.animate([
+    {transform:'translateY(0) rotate(0) scale(1)',offset:0},
+    {transform:'translateY(-2px) rotate(-10deg) scale(1.035,.975)',offset:.2},
+    {transform:'translateY(-1px) rotate(8deg) scale(.985,1.025)',offset:.43},
+    {transform:'translateY(0) rotate(-4deg) scale(1.01,.995)',offset:.65},
+    {transform:'translateY(0) rotate(2deg) scale(1)',offset:.82},
+    {transform:'translateY(0) rotate(0) scale(1)',offset:1}
+  ],{duration:680,easing:'cubic-bezier(.37,0,.25,1)'});
+}
+
+function updateHeader(){
+  headerTicking = false;
+  const compact = floatingHeader.classList.contains('is-compact');
+  if (!compact && scrollY > 90) {
+    floatingHeader.classList.add('is-compact');
+    wiggleHeaderMark();
+  } else if (compact && scrollY < 35) {
+    floatingHeader.classList.remove('is-compact');
+    wiggleHeaderMark();
+  }
+}
+addEventListener('scroll',()=>{
+  if(!headerTicking){headerTicking=true;requestAnimationFrame(updateHeader);}
+},{passive:true});
+addEventListener('pageshow',updateHeader);
+updateHeader();
+
+const colorSections=[...document.querySelectorAll('[data-scroll-bg]')];
+const mobileCaseBackground = matchMedia('(max-width: 650px)');
+const caseSection = document.querySelector('#werk');
+const desktopCaseBackground = caseSection.dataset.scrollBg;
+function updateCaseBackground(){
+  caseSection.dataset.scrollBg = mobileCaseBackground.matches ? '#000d49' : desktopCaseBackground;
+  schedulePageBackground();
+}
+mobileCaseBackground.addEventListener('change', updateCaseBackground);
+let backgroundTicking=false;
+function updatePageBackground(){
+  backgroundTicking=false;
+  if (mobileCaseBackground.matches) {
+    const approachTop = document.querySelector('#aanpak').getBoundingClientRect().top;
+    const progress = Math.max(0, Math.min(1, (innerHeight * 0.85 - approachTop) / (innerHeight * 0.4)));
+    const blend = reduced.matches ? (progress >= 0.5 ? 1 : 0) : progress * progress * (3 - 2 * progress);
+    const mix = (from, to) => Math.round(from + (to - from) * blend);
+    document.body.style.setProperty('--mobile-work-bg', `rgb(${mix(0,255)},${mix(13,255)},${mix(73,255)})`);
+    document.body.style.setProperty('--mobile-work-ink', blend > 0.5 ? '#000d49' : '#fff');
+    document.body.style.setProperty('--mobile-work-accent', blend > 0.5 ? '#3558fd' : '#a8bcff');
+  }
+  const focusY=innerHeight*.18;
+  let active=colorSections[0];
+  let nearest=Infinity;
+  colorSections.forEach(section=>{
+    const rect=section.getBoundingClientRect();
+    if(rect.top<=focusY&&rect.bottom>focusY){active=section;nearest=0;return;}
+    if(nearest===0)return;
+    const distance=Math.min(Math.abs(rect.top-focusY),Math.abs(rect.bottom-focusY));
+    if(distance<nearest){nearest=distance;active=section;}
+  });
+  // Start the footer transition on entry, rather than near the top of the viewport.
+  const footer=document.querySelector('.footer[data-scroll-bg]');
+  if(footer){
+    const footerTop=footer.getBoundingClientRect().top;
+    const footerFadeStart=innerHeight*1.14;
+    // Finish by mid-viewport, or by the maximum reachable scroll position.
+    const maxScroll=Math.max(0,document.documentElement.scrollHeight-innerHeight);
+    const footerTopAtEnd=footerTop-(maxScroll-scrollY);
+    const footerFadeEnd=Math.max(innerHeight*.66,footerTopAtEnd);
+    const progress=Math.max(0,Math.min(1,(footerFadeStart-footerTop)/Math.max(1,footerFadeStart-footerFadeEnd)));
+    const blend=reduced.matches?(progress>0?1:0):progress*progress*(3-2*progress);
+    const channel=(from,to)=>Math.round(from+(to-from)*blend);
+    footer.style.setProperty('--footer-art-opacity',blend);
+    footer.style.setProperty('--footer-bg',`rgb(${channel(255,0)},${channel(255,13)},${channel(255,73)})`);
+    footer.style.setProperty('--footer-fg',`rgb(${channel(27,255)},${channel(28,255)},${channel(36,255)})`);
+    footer.style.setProperty('--footer-accent',`rgb(${channel(53,168)},${channel(88,188)},${channel(253,255)})`);
+    if(progress>0)active=footer;
+  }
+  if(active){
+    let background=active.dataset.scrollBg;
+    const value=background.slice(1);
+    let red=parseInt(value.slice(0,2),16);
+    let green=parseInt(value.slice(2,4),16);
+    let blue=parseInt(value.slice(4,6),16);
+    if (!mobileCaseBackground.matches && (active === caseSection || active.id === 'aanpak')) {
+      const titleTop = document.querySelector('#aanpak .approach-heading').getBoundingClientRect().top;
+      const progress = Math.max(0, Math.min(1, (innerHeight * 1.08 - titleTop) / (innerHeight * 0.48)));
+      const blend = reduced.matches ? (progress >= 0.5 ? 1 : 0) : progress * progress * (3 - 2 * progress);
+      red = Math.round(255 * blend);
+      green = Math.round(13 + 242 * blend);
+      blue = Math.round(73 + 182 * blend);
+      background = `rgb(${red},${green},${blue})`;
+    }
+    if (active.id === 'aanpak' || active.id === 'over') {
+      const teamTitleTop = document.querySelector('#over .section-heading').getBoundingClientRect().top;
+      const progress = Math.max(0, Math.min(1, (innerHeight * 0.88 - teamTitleTop) / (innerHeight * 0.45)));
+      if (progress > 0) {
+        const blend = reduced.matches ? 1 : progress * progress * (3 - 2 * progress);
+        red = Math.round(255 * (1 - blend));
+        green = Math.round(255 - 242 * blend);
+        blue = Math.round(255 - 182 * blend);
+        background = `rgb(${red},${green},${blue})`;
+      }
+    }
+    document.body.style.setProperty('--page-bg',background);
+    const luminance=(red*.299+green*.587+blue*.114)/255;
+    document.body.style.setProperty('--page-fg',luminance>.58?'#1b1c24':'#ffffff');
+    document.body.style.setProperty('--page-accent',luminance>.58?'#3558fd':'#a8bcff');
+    // Safari's outer canvas follows the actual section at the top edge,
+    // not the next section that has already started its scroll transition.
+    const edgeSection=colorSections.find(section=>{
+      const rect=section.getBoundingClientRect();
+      return rect.top<=1 && rect.bottom>1;
+    });
+    let browserBackground=background;
+    if(edgeSection){
+      if(mobileCaseBackground.matches && (edgeSection.id==='werk' || edgeSection.id==='aanpak')){
+        browserBackground=document.body.style.getPropertyValue('--mobile-work-bg') || background;
+      } else if(edgeSection.classList.contains('faq-section')){
+        browserBackground='#f7f8fc';
+      } else if(edgeSection.classList.contains('testimonials')){
+        browserBackground='#ffffff';
+      } else if(edgeSection===footer){
+        browserBackground=footer.style.getPropertyValue('--footer-bg') || edgeSection.dataset.scrollBg;
+      }
+    }
+    const legalBottom=document.querySelector('.footer-legal');
+    if(mobileCaseBackground.matches && legalBottom){
+      const legalRect=legalBottom.getBoundingClientRect();
+      const visibleBottom=window.visualViewport
+        ? window.visualViewport.offsetTop+window.visualViewport.height
+        : innerHeight;
+      if(legalRect.top<visibleBottom && legalRect.bottom>0){
+        browserBackground='#00072b';
+        // iPhone Safari may sample the body for its lower safe-area fill.
+        // Match both canvases as soon as the dark legal band is visible.
+        document.body.style.setProperty('--page-bg',browserBackground);
+      }
+    }
+    document.documentElement.style.setProperty('--browser-bg',browserBackground);
+  }
+}
+function schedulePageBackground(){
+  if(!backgroundTicking){backgroundTicking=true;requestAnimationFrame(updatePageBackground);}
+}
+addEventListener('scroll',schedulePageBackground,{passive:true});
+addEventListener('resize',schedulePageBackground);
+window.visualViewport?.addEventListener('resize',schedulePageBackground);
+window.visualViewport?.addEventListener('scroll',schedulePageBackground);
+addEventListener('pageshow',updatePageBackground);
+updateCaseBackground();
+updatePageBackground();
+
+// Load just one responsive video; keep the poster if autoplay is unavailable.
+const heroVideo=document.querySelector('#hero-video');
+const heroVideoMobile=matchMedia('(max-width: 650px)');
+let heroVideoInView=true;
+function syncHeroVideo(){
+  const mayPlay=heroVideoInView && !document.hidden &&
+    !reduced.matches && !navigator.connection?.saveData;
+  if(mayPlay){
+    if(!heroVideo.hasAttribute('src')){
+      heroVideo.src=heroVideoMobile.matches?'assets/eyee-showreel-20261015-v4-hero-mobile.mp4':'assets/eyee-showreel-20261015-v4-hero-desktop.mp4';
+    }
+    heroVideo.muted=true;
+    heroVideo.play().catch(()=>{});
+  }else heroVideo.pause();
+}
+heroVideo.addEventListener('playing',()=>{
+  heroVideo.parentElement.classList.add('has-video-frame');
+});
+heroVideo.addEventListener('error',()=>{
+  heroVideo.parentElement.classList.remove('has-video-frame');
+});
+heroVideoMobile.addEventListener('change',()=>{
+  heroVideo.pause();
+  heroVideo.removeAttribute('src');
+  heroVideo.load();
+  heroVideo.parentElement.classList.remove('has-video-frame');
+  syncHeroVideo();
+});
+reduced.addEventListener('change',()=>{
+  syncHeroVideo();
+});
+document.addEventListener('visibilitychange',syncHeroVideo);
+new IntersectionObserver(entries=>{
+  heroVideoInView=entries[0].isIntersecting;
+  syncHeroVideo();
+},{threshold:0.05}).observe(heroVideo.parentElement);
+
+// Laat de cases trapsgewijs verschijnen zodra het projectoverzicht in beeld komt.
+const casePosters=[...document.querySelectorAll('.case-poster')];
+if(reduced.matches){
+  casePosters.forEach(poster=>poster.classList.add('is-visible'));
+}else{
+  casePosters.forEach((poster,index)=>{
+    poster.classList.add('reveal-case');
+    poster.style.setProperty('--reveal-delay',`${index*110}ms`);
+  });
+  const caseObserver=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(!entry.isIntersecting)return;
+      entry.target.classList.add('is-visible');
+      caseObserver.unobserve(entry.target);
+    });
+  },{threshold:.14,rootMargin:'0px 0px -8%'});
+  casePosters.forEach(poster=>caseObserver.observe(poster));
+}
+
+// Reveal client logos once, staggered within each visible batch.
+const clientLogos=[...document.querySelectorAll('.client-grid img')];
+if(!reduced.matches && 'IntersectionObserver' in window){
+  const logoObserver=new IntersectionObserver(entries=>{
+    entries.filter(entry=>entry.isIntersecting).forEach((entry,index)=>{
+      const logo=entry.target;
+      logo.style.setProperty('--logo-delay',`${index*90}ms`);
+      logo.classList.remove('logo-awaiting');
+      logo.classList.add('logo-arriving');
+      logo.addEventListener('animationend',()=>logo.classList.remove('logo-arriving'),{once:true});
+      logoObserver.unobserve(logo);
+    });
+  },{threshold:.2});
+  clientLogos.forEach(logo=>{logo.classList.add('logo-awaiting');logoObserver.observe(logo);});
+  reduced.addEventListener('change',()=>{
+    if(reduced.matches){logoObserver.disconnect();clientLogos.forEach(logo=>logo.classList.remove('logo-awaiting','logo-arriving'));}
+  });
+}
+
+// Reader-controlled testimonials: full text, no automatic rotation.
+const reviewSection=document.querySelector('.testimonials');
+if(reviewSection){
+ const slides=[...reviewSection.querySelectorAll('.testimonial-slide')];
+ const controls=reviewSection.querySelector('.testimonial-controls');
+ const reviewStage=reviewSection.querySelector('.testimonial-stage');
+ function positionReviewControls(){
+  reviewStage.append(controls);
+ }
+ let currentReview=0;
+ slides.forEach(slide=>{
+  const person=slide.querySelector('.testimonial-person');
+  const company=person.querySelector('.testimonial-author span');
+  const heading=document.createElement('h3');
+  heading.className='review-company';
+  const author=person.querySelector('.testimonial-author');
+  const fullName=Array.from(author.childNodes).filter(node=>node.nodeType===Node.TEXT_NODE).map(node=>node.textContent).join(' ').trim();
+  const firstName=document.createElement('span');
+  firstName.className='review-first-name';
+  firstName.textContent=fullName.split(/\s+/)[0];
+  const companyName=document.createElement('span');
+  companyName.className='review-company-name';
+  companyName.textContent=company.textContent.trim();
+  heading.append(firstName,document.createTextNode(' van '),companyName);
+  slide.querySelector('h2').replaceWith(heading);
+  company.hidden=true;
+  const identity=document.createElement('div');
+  identity.className='review-identity';
+  identity.append(person.querySelector('.testimonial-photo'));
+  const quote=slide.querySelector('blockquote');
+  quote.textContent=quote.textContent.trim().replace(/^[“"]|[”"]$/g,'');
+  slide.prepend(identity);
+  person.remove();
+ });
+
+ function showReview(index){
+  currentReview=(index+slides.length)%slides.length;
+  controls.querySelector('.review-count').textContent=`${String(currentReview+1).padStart(2,'0')} / ${slides.length}`;
+  slides.forEach((slide,i)=>{slide.hidden=i!==currentReview;});
+  positionReviewControls();
+ }
+ if(slides.length>1){
+  reviewSection.classList.add('is-interactive');controls.hidden=false;
+  controls.querySelector('[data-review-prev]').addEventListener('click',()=>showReview(currentReview-1));
+  controls.querySelector('[data-review-next]').addEventListener('click',()=>showReview(currentReview+1));
+  showReview(0);
+ }
+}
+
+// Bring each team portrait into view once, with a gentle stagger.
+const teamPortraitCards=[...document.querySelectorAll('.team-grid>a')];
+if(!reduced.matches && 'IntersectionObserver' in window){
+ const teamObserver=new IntersectionObserver(entries=>{
+  entries.filter(entry=>entry.isIntersecting).forEach((entry,index)=>{
+   const card=entry.target;
+   card.style.setProperty('--portrait-delay',`${index*120}ms`);
+   card.classList.remove('portrait-awaiting');
+   card.classList.add('portrait-entering');
+   card.addEventListener('animationend',()=>card.classList.remove('portrait-entering'),{once:true});
+   teamObserver.unobserve(card);
+  });
+ },{threshold:.12,rootMargin:'0px 0px -5%'});
+ teamPortraitCards.forEach(card=>{card.classList.add('portrait-awaiting');teamObserver.observe(card);});
+ reduced.addEventListener('change',()=>{
+  if(reduced.matches){teamObserver.disconnect();teamPortraitCards.forEach(card=>card.classList.remove('portrait-awaiting','portrait-entering'));}
+ });
+}
+
+// Clicking the logo refreshes the current page.
+document.querySelector('.header .brand').addEventListener('click',event=>{
+ if(event.button!==0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)return;
+ event.preventDefault();
+ window.location.reload();
+});
+// Match the mobile reading order to its stacked hero composition.
+const heroPortrait=document.querySelector('.hero-portrait');
+const mobileHero=matchMedia('(max-width: 650px)');
+function positionHeroPortrait(){
+ document.querySelector('.hero-copy').insertBefore(heroPortrait,document.querySelector('.hero h1'));
+}
+positionHeroPortrait();
+mobileHero.addEventListener('change',positionHeroPortrait);
+// One continuous client row, preserving inaccessible duplicates.
+const logoSlider=document.querySelector('.eyee-logoslider-wrapper');
+if(logoSlider){
+ logoSlider.querySelectorAll('a.logo-item').forEach(link=>{
+  const image=link.querySelector('.logo-img.first');
+  if(image?.style.height)link.style.setProperty('--logo-height',image.style.height);
+ });
+ logoSlider.querySelectorAll('.marquee__group[aria-hidden]').forEach(group=>{
+  group.removeAttribute('inert');
+  group.querySelectorAll('a').forEach(link=>link.setAttribute('tabindex','-1'));
+ });
+ logoSlider.querySelectorAll('.marquee__group').forEach(group=>{
+  const firstRow=group.querySelector('.r1');
+  const secondRow=group.querySelector('.r2');
+  if(firstRow && secondRow){
+   firstRow.append(...secondRow.children);
+   secondRow.remove();
+  }
+ });
+
+ // Editorial summaries from the existing opdrachtgever/project pages.
+ // Keep these local: hovering never makes a request or delays navigation.
+ const clientNotes={
+  'Sociaal Planbureau Groningen':'Ontwerp, ontwikkeling en onderhoud van een website die maatschappelijke kennis toegankelijk maakt.',
+  'Diabetesvereniging Nederland':'Een overzichtelijk platform dat mensen met diabetes helpt de juiste informatie te vinden.',
+  'Yesty':'Ontwerp en ontwikkeling van een website voor het belonen van medewerkers en klanten.',
+  'Salda':'Specialist in ventilatiesystemen en luchtbehandeling voor woningen en bedrijven.',
+  'Provincie Groningen':'Provinciale overheid voor de inwoners, organisaties en leefomgeving van Groningen.',
+  'Gullimex':'Meet- en monitoringoplossingen voor betrouwbare controle van processen.',
+  'Trendbureau Drenthe':'Een website die onderzoek en inzichten over de Drentse samenleving toegankelijk maakt.',
+  'The Indian Maharadja':'Een vernieuwde Magento-webshop voor het Nederlandse hockey- en sportmerk, samen met Mountain IT.',
+  'CMO STAMM':'Een toegankelijke, contentrijke website die maatschappelijke kennis helder ontsluit.',
+  '101BHV':'BHV- en EHBO-opleidingen en producten voor veiligheid op de werkvloer.',
+  'Beach Wagon':'Opvouwbare bolderkarren voor het strand, de camping en andere uitstapjes.',
+  'Provincie Drenthe':'Provinciale overheid voor de inwoners, organisaties en leefomgeving van Drenthe.',
+  'Bijscholing Instituut voor Therapeuten':'Cursussen en workshops voor de professionele ontwikkeling van therapeuten.',
+  'Drenthe samen gezond in beweging':'Een initiatief dat sport, beweging en een gezonde leefstijl in Drenthe stimuleert.',
+  'De Print Partner':'Digitale printoplossingen voor resellers, drukkerijen en grootverbruikers.',
+  'Horecagoedkoop':'Een vernieuwde UI/UX en Magento-webshop voor de online drankengroothandel, samen met Mountain IT.',
+  'Gooze':'Specialist in performance-onderdelen voor klassieke Amerikaanse auto’s.',
+  'Ukraine Food':'Ontwerp en ontwikkeling van een nieuwe webshop voor Ukraine Food.',
+  'Symphony Travel':'Een website en logo voor het reisbureau voor maatwerkreizen, samen met Mountain IT.',
+  'Kwekerij Arborealis':'Bijzondere bomen, struiken en planten, met aandacht voor biodiversiteit.',
+  'Groenstudio Schöne':'Een Gronings ontwerpbureau voor duurzame tuinen en landschappen.',
+  'Spijs':'Een Gronings restaurant met aandacht voor ambacht en lokale ingrediënten.'
+ };
+ const tip=document.createElement('div');
+ tip.id='client-logo-tooltip';
+ tip.className='client-logo-tooltip';
+ tip.setAttribute('role','tooltip');
+ tip.hidden=true;
+ const tipTitle=document.createElement('strong');
+ const tipDescription=document.createElement('p');
+ tip.append(tipTitle,tipDescription);
+ document.body.append(tip);
+ let activeLogo=null,showTimer,hideTimer;
+ function hideClientNote(){
+  clearTimeout(showTimer);
+  clearTimeout(hideTimer);
+  if(activeLogo)activeLogo.removeAttribute('aria-describedby');
+  activeLogo=null;
+  tip.hidden=true;
+  logoSlider.classList.remove('has-client-note');
+ }
+ function positionClientNote(){
+  if(!activeLogo)return;
+  const anchor=activeLogo.getBoundingClientRect();
+  const bounds=tip.getBoundingClientRect();
+  const left=Math.max(16,Math.min(innerWidth-bounds.width-16,anchor.left+(anchor.width-bounds.width)/2));
+  const above=anchor.top-bounds.height-12;
+  const top=above>=16?above:Math.min(innerHeight-bounds.height-16,anchor.bottom+12);
+  tip.style.left=`${left}px`;
+  tip.style.top=`${Math.max(16,Math.min(innerHeight-bounds.height-16,top+10))}px`;
+ }
+ function showClientNote(link,delay){
+  hideClientNote();
+  const name=link.querySelector('img[alt]')?.alt;
+  if(!clientNotes[name])return;
+  showTimer=setTimeout(()=>{
+   activeLogo=link;
+   tipTitle.textContent=name;
+   tipDescription.textContent=clientNotes[name];
+   tip.hidden=false;
+   link.setAttribute('aria-describedby',tip.id);
+   logoSlider.classList.add('has-client-note');
+   positionClientNote();
+  },delay);
+ }
+ function scheduleHideClientNote(){
+  clearTimeout(showTimer);
+  clearTimeout(hideTimer);
+  hideTimer=setTimeout(()=>{
+   if(activeLogo?.matches(':focus-visible'))return;
+   hideClientNote();
+  },180);
+ }
+ logoSlider.querySelectorAll('a.logo-item').forEach(link=>{
+  link.addEventListener('pointerenter',event=>{
+   if(event.pointerType==='mouse' || (event.pointerType==='pen' && matchMedia('(any-hover: hover)').matches))showClientNote(link,100);
+  });
+  link.addEventListener('pointerleave',scheduleHideClientNote);
+  link.addEventListener('focus',()=>{
+   if(link.matches(':focus-visible'))showClientNote(link,0);
+  });
+  link.addEventListener('blur',scheduleHideClientNote);
+  link.addEventListener('click',hideClientNote);
+ });
+ tip.addEventListener('pointerenter',()=>clearTimeout(hideTimer));
+ tip.addEventListener('pointerleave',scheduleHideClientNote);
+ document.addEventListener('keydown',event=>{
+  if(event.key==='Escape')hideClientNote();
+ });
+ window.addEventListener('scroll',hideClientNote,{passive:true});
+ window.addEventListener('resize',hideClientNote,{passive:true});
+}

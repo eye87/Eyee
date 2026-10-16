@@ -48,8 +48,9 @@ menu.addEventListener('close', () => setMobileExpertise(false, false));
 let menuCloseTimer;
 let menuIsClosing=false;
 let menuInput='pointer';
-document.addEventListener('pointerdown',()=>{menuInput='pointer';},{capture:true,passive:true});
-document.addEventListener('keydown',()=>{menuInput='keyboard';toggle.classList.remove('suppress-pointer-focus');},{capture:true});
+menu.dataset.input='pointer';
+document.addEventListener('pointerdown',()=>{menuInput='pointer';menu.dataset.input='pointer';},{capture:true,passive:true});
+document.addEventListener('keydown',()=>{menuInput='keyboard';menu.dataset.input='keyboard';toggle.classList.remove('suppress-pointer-focus');},{capture:true});
 function alignMenuClose(){
  const target=toggle.getBoundingClientRect();
  const centerX=target.left+target.width/2;

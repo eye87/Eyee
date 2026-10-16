@@ -2,6 +2,7 @@
 (() => {
   const root = document.documentElement;
   const key = 'eyee-accessibility';
+  const hiddenSessionKey = 'eyee-accessibility-hidden';
   const defaults = {size: 100, contrast: false, dark: false, reading: false, motion: false, hidden: false};
   let preferences = {...defaults};
   try {
@@ -11,6 +12,14 @@
       if (Number.isFinite(saved.size)) preferences.size = Math.max(100, Math.min(200, Math.round(saved.size / 10) * 10));
     }
   } catch { /* Preferences also work without storage. */ }
+  // Ignore the old persistent hidden flag; only the current tab session counts.
+  // Explicit reload resets the preview; ordinary page navigation preserves it.
+  const reloaded = performance.getEntriesByType('navigation')[0]?.type === 'reload';
+  try {
+    if (reloaded) sessionStorage.removeItem(hiddenSessionKey);
+    preferences.hidden = sessionStorage.getItem(hiddenSessionKey) === '1';
+  }
+  catch { /* Keep the button visible when session storage is unavailable. */ }
   const person = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="4" r="2"/><path d="m4 8 8 2 8-2M12 10v5m0 0-4 6m4-6 4 6"/></svg>';
   const launch = document.createElement('button');
   launch.className = 'accessibility-launch';
@@ -18,6 +27,10 @@
   launch.setAttribute('aria-haspopup', 'dialog');
   launch.setAttribute('aria-controls', 'accessibility-panel');
   launch.innerHTML = person;
+  const hideLaunch = document.createElement('button');
+  hideLaunch.className = 'accessibility-hide';
+  hideLaunch.type = 'button';
+  hideLaunch.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
   const panel = document.createElement('dialog');
   panel.id = 'accessibility-panel';
   panel.className = 'accessibility-panel';
@@ -26,9 +39,26 @@
     <div class="accessibility-size"><span data-copy="size"></span><div><button type="button" data-size="-10">A−</button><output aria-live="polite"></output><button type="button" data-size="10">A+</button></div></div>
     <div class="accessibility-options"></div>
     <div class="accessibility-actions"><button type="button" data-reset></button></div>
+    <button type="button" class="accessibility-hide-option" data-hide-launch data-copy="hide"></button>
     <p class="accessibility-note" data-copy="note"></p>
     <p class="accessibility-status" role="status"></p>`;
-  document.body.append(launch, panel);
+  document.body.append(launch, hideLaunch, panel);
+  const hoverPointer = matchMedia('(hover:hover) and (pointer:fine)');
+  let hoverFrame = 0, pointerX = -100, pointerY = -100;
+  function updateProximity() {
+    hoverFrame = 0;
+    const rect = launch.getBoundingClientRect();
+    const closeRect = hideLaunch.getBoundingClientRect();
+    const inside = (box, margin) => pointerX >= box.left-margin && pointerX <= box.right+margin && pointerY >= box.top-margin && pointerY <= box.bottom+margin;
+    launch.classList.toggle('is-near', hoverPointer.matches && !launch.hidden && !panel.open && (inside(rect,20) || inside(closeRect,0)));
+  }
+  document.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' || !hoverPointer.matches) return;
+    pointerX = event.clientX; pointerY = event.clientY;
+    if (!hoverFrame) hoverFrame = requestAnimationFrame(updateProximity);
+  }, {passive:true});
+  document.addEventListener('pointerleave', () => launch.classList.remove('is-near'));
+  hoverPointer.addEventListener('change', updateProximity);
   const footerBar = document.querySelector('.footer-legal');
   const footerLanguage = document.querySelector('.footer-language');
   let placementFrame = 0;
@@ -44,6 +74,10 @@
     const needsRoom = button.left < language.right + 20 && button.right > language.left - 20;
     const offset = needsRoom ? Math.max(0, visibleBottom - footerBar.getBoundingClientRect().top) : 0;
     launch.style.setProperty('--accessibility-footer-offset', `${offset}px`);
+    const positioned = launch.getBoundingClientRect();
+    hideLaunch.style.top = `${positioned.top - 30}px`;
+    hideLaunch.style.right = `${innerWidth - positioned.right - 20}px`;
+    updateProximity();
   }
   function scheduleLauncherPlacement() {
     if (!placementFrame) placementFrame = requestAnimationFrame(positionLauncher);
@@ -77,6 +111,8 @@
     const text = copy();
     panel.querySelector('h2').textContent = text.title;
     launch.setAttribute('aria-label', text.title);
+    hideLaunch.setAttribute('aria-label', text.hide);
+    hideLaunch.title = text.hide;
     document.querySelectorAll('[data-accessibility-open]').forEach(button => {
       button.textContent = text.title;
       button.setAttribute('aria-haspopup', 'dialog');
@@ -124,23 +160,43 @@
     for (const name of ['contrast', 'dark', 'reading', 'motion']) root.toggleAttribute(`data-a11y-${name}`, preferences[name]);
     root.toggleAttribute('data-a11y-text', preferences.size > 100);
     launch.hidden = preferences.hidden;
+    hideLaunch.hidden = preferences.hidden;
     panel.querySelector('output').value = `${preferences.size}%`;
     panel.querySelector('[data-size="-10"]').disabled = preferences.size <= 100;
     panel.querySelector('[data-size="10"]').disabled = preferences.size >= 200;
     options.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed', String(preferences[button.dataset.preference])));
     scaleText();
     document.dispatchEvent(new CustomEvent('eyeeaccessibilitychange', {detail: {...preferences}}));
-    try {localStorage.setItem(key, JSON.stringify(preferences));} catch { /* Keep in-memory settings. */ }
+    const {hidden, ...savedPreferences} = preferences;
+    try {localStorage.setItem(key, JSON.stringify(savedPreferences));} catch { /* Keep in-memory settings. */ }
+    try {
+      if (hidden) sessionStorage.setItem(hiddenSessionKey, '1');
+      else sessionStorage.removeItem(hiddenSessionKey);
+    } catch { /* Hiding still works until this page is reloaded. */ }
   }
   let opener;
   function open(event) {
     opener = event.currentTarget;
+    if (opener.hasAttribute('data-accessibility-open')) {
+      preferences.hidden = false;
+      apply();
+    }
     if (!panel.open) {
       panel.showModal();
       panel.querySelector('h2').focus({preventScroll:true});
     }
   }
   launch.addEventListener('click', open);
+  function hideFloatingButton() {
+    const keyboard = hideLaunch.matches(':focus-visible');
+    preferences.hidden = true;
+    launch.classList.remove('is-near');
+    apply();
+    if (panel.open) panel.close();
+    if (keyboard) document.querySelector('[data-accessibility-open]')?.focus({preventScroll:true});
+  }
+  hideLaunch.addEventListener('click', hideFloatingButton);
+  panel.querySelector('[data-hide-launch]').addEventListener('click', hideFloatingButton);
   document.querySelectorAll('[data-accessibility-open]').forEach(button => button.addEventListener('click', open));
   panel.querySelector('[data-close]').addEventListener('click', () => panel.close());
   panel.addEventListener('click', event => {if (event.target === panel) {const r=panel.getBoundingClientRect(); if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom) panel.close();}});
@@ -153,6 +209,12 @@
   document.addEventListener('eyeelanguagechange', () => {localize(); if(preferences.size>100) scaleText();});
   document.addEventListener('eyeelanguagechange', scheduleLauncherPlacement);
   document.addEventListener('eyeeaccessibilitychange', scheduleLauncherPlacement);
+  addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    try {preferences.hidden = sessionStorage.getItem(hiddenSessionKey) === '1';}
+    catch { /* Keep the current in-memory choice. */ }
+    apply();
+  });
   localize();
   document.fonts.ready.then(apply);
 })();
