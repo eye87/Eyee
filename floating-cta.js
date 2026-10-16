@@ -123,7 +123,7 @@ window.eyeeFloatingCTAContent = {
     card.style.right = `${right}px`;
     card.style.maxWidth = `${Math.max(0, button.left - 40)}px`;
     const top = Math.max((viewport?.offsetTop || 0) + 12, button.bottom - card.offsetHeight);
-    card.style.top = `${top}px`;
+    card.style.top = `${top + (document.documentElement.hasAttribute('data-ios-floating') ? scrollY : 0)}px`;
   }
   function schedule() {if (!frame) frame = requestAnimationFrame(update);}
   function arm() {

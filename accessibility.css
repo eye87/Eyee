@@ -18,6 +18,7 @@
   transition: background-color .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 .accessibility-launch:focus-visible {background:var(--color-blue-dark);}
+html[data-ios-floating] :is(.accessibility-launch,.accessibility-hide) {position:absolute;}
 @media (hover:hover) {
   .accessibility-launch.is-near,
   .accessibility-launch:has(+ .accessibility-hide:hover),

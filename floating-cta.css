@@ -11,6 +11,7 @@
   animation:floating-cta-enter .35s cubic-bezier(.16,1,.3,1) both;
 }
 .floating-cta[hidden] {display:none;}
+html[data-ios-floating] .floating-cta {position:absolute;}
 .floating-cta h2 {margin:0 24px 8px 0; font:700 20px/1.2 "GT Walsheim Pro",Avenir,Arial,sans-serif; letter-spacing:-.025em;}
 .floating-cta p {margin:0 0 16px; font:400 14px/1.5 Avenir,Arial,sans-serif; color:#52607e;}
 .floating-cta-close {position:absolute; top:8px; right:6px; display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; background:none; color:var(--color-navy); cursor:pointer;}
