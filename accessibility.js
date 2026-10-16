@@ -1,18 +1,19 @@
 /* Optional reading preferences; native browser zoom and keyboard controls stay available. */
 (() => {
   const root = document.documentElement;
-  // Stable iOS viewport with a modest 10px downward adjustment. Avoid dynamic
-  // toolbar tracking: fixed layers can be clipped during its transition.
+  // Stable iOS baseline. Adjust for collapsed chrome only after it settles,
+  // with a bounded correction to avoid Safari's clipped bottom layer.
   // Never track document scroll with absolute-positioned floating controls.
   const stableIOSViewport = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   root.toggleAttribute('data-ios-floating', stableIOSViewport);
   const viewportProbe = document.createElement('span');
   viewportProbe.setAttribute('aria-hidden', 'true');
-  viewportProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:calc(100svh + 10px);visibility:hidden;pointer-events:none;';
+  viewportProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none;';
   if (stableIOSViewport) document.body.append(viewportProbe);
   let iosViewportWidth = innerWidth;
   let iosAnchorHeight = stableIOSViewport ? viewportProbe.getBoundingClientRect().height : 0;
+  let iosToolbarTimer;
   const key = 'eyee-accessibility';
   const hiddenSessionKey = 'eyee-accessibility-hidden';
   const defaults = {size: 100, contrast: false, dark: false, reading: false, motion: false, hidden: false};
@@ -104,6 +105,20 @@
   addEventListener('resize', scheduleLauncherPlacement, {passive:true});
   window.visualViewport?.addEventListener('resize', scheduleLauncherPlacement, {passive:true});
   window.visualViewport?.addEventListener('scroll', scheduleLauncherPlacement, {passive:true});
+  function settleIOSToolbar() {
+    if (!stableIOSViewport) return;
+    clearTimeout(iosToolbarTimer);
+    iosToolbarTimer = setTimeout(() => {
+      const smallHeight = viewportProbe.getBoundingClientRect().height;
+      const viewport = window.visualViewport;
+      const growth = viewport && viewport.scale === 1 ? viewport.height - smallHeight : 0;
+      iosAnchorHeight = smallHeight + Math.min(45, Math.max(0, growth));
+      scheduleLauncherPlacement();
+    }, 180);
+  }
+  window.visualViewport?.addEventListener('resize', settleIOSToolbar, {passive:true});
+  addEventListener('resize', settleIOSToolbar, {passive:true});
+  settleIOSToolbar();
   addEventListener('pageshow', scheduleLauncherPlacement);
   if (footerBar && 'ResizeObserver' in window) {
     const footerObserver = new ResizeObserver(scheduleLauncherPlacement);
