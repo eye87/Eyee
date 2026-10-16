@@ -9,6 +9,7 @@
   let bloom, wash, gameCssLink, gamePromise, game;
   let opening = false, gameActive = false, charge = 0, openFrame = 0;
   let eyeArmedUntil = 0;
+  let pointerX = -1, pointerY = -1;
   const blockWheel = event => event.preventDefault();
   const stopBlockingWheel = () => window.removeEventListener('wheel', blockWheel, true);
 
@@ -17,11 +18,10 @@
       !document.querySelector('#menu')?.open;
   }
   function canActivate() { return atPageTop() && !opening && !gameActive; }
-  function overEye(event) {
-    if (mark.matches(':hover') || eyeArmedUntil > performance.now()) return true;
+  function overEye(x, y) {
     const r = mark.getBoundingClientRect();
-    return event.clientX >= r.left - 9 && event.clientX <= r.right + 9 &&
-      event.clientY >= r.top - 9 && event.clientY <= r.bottom + 9;
+    return x >= r.left - 9 && x <= r.right + 9 &&
+      y >= r.top - 9 && y <= r.bottom + 9;
   }
   function createEffects() {
     wash = document.createElement('div');
@@ -43,12 +43,16 @@
     const css = new Promise((resolve, reject) => {
       gameCssLink = document.createElement('link');
       gameCssLink.rel = 'stylesheet';
-      gameCssLink.href = 'eye-game.css?v=20261016-4';
-      gameCssLink.onload = resolve;
-      gameCssLink.onerror = () => reject(new Error('Spelopmaak kon niet laden'));
+      gameCssLink.href = 'eye-game.css?v=20261016-6';
+      const timeout = setTimeout(() => {
+        if (gameCssLink.sheet) resolve();
+        else reject(new Error('Spelopmaak kon niet laden'));
+      }, 3000);
+      gameCssLink.onload = () => { clearTimeout(timeout); resolve(); };
+      gameCssLink.onerror = () => { clearTimeout(timeout); reject(new Error('Spelopmaak kon niet laden')); };
       document.head.appendChild(gameCssLink);
     });
-    gamePromise = Promise.all([css, import('./eye-game-play.js?v=20261016-1')])
+    gamePromise = Promise.all([css, import('./eye-game-play.js?v=20261016-6')])
       .then(([, module]) => module);
     return gamePromise;
   }
@@ -100,6 +104,7 @@
     createEffects();
     opening = true;
     window.addEventListener('wheel', blockWheel, { passive: false, capture: true });
+    window.removeEventListener('wheel', onEyeWheel, true);
     eyeArmedUntil = 0;
     // The request starts with the animation; normal page visits fetch neither file.
     loadGame().catch(() => {});
@@ -117,22 +122,37 @@
     openFrame = requestAnimationFrame(animate);
   }
 
-  mark.addEventListener('pointerenter', event => {
-    if (event.pointerType === 'mouse' && canActivate()) eyeArmedUntil = Infinity;
-  });
-  mark.addEventListener('pointerleave', () => {
-    if (eyeArmedUntil === Infinity) eyeArmedUntil = performance.now() + 180;
-  });
-  brand.addEventListener('wheel', event => {
-    if (event.deltaY <= 0 || !canActivate() || !overEye(event)) return;
+  function onEyeWheel(event) {
+    const x = event.clientX || pointerX;
+    const y = event.clientY || pointerY;
+    if (event.deltaY <= 0 || !canActivate() || !overEye(x, y)) return;
     event.preventDefault();
     startOpening();
-  }, { passive: false, capture: true });
+  }
+  // Listen for wheel only while the pointer is on the logo. Safari sometimes
+  // targets the SVG differently, so a listener on the SVG/anchor can miss it.
+  brand.addEventListener('pointerenter', event => {
+    if (event.pointerType !== 'mouse') return;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    if (overEye(pointerX, pointerY) && canActivate()) eyeArmedUntil = Infinity;
+    window.addEventListener('wheel', onEyeWheel, { passive: false, capture: true });
+  });
+  brand.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse') return;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    eyeArmedUntil = overEye(pointerX, pointerY) && canActivate() ? Infinity : 0;
+  }, { passive: true });
+  brand.addEventListener('pointerleave', () => {
+    if (eyeArmedUntil === Infinity) eyeArmedUntil = performance.now() + 180;
+    window.removeEventListener('wheel', onEyeWheel, true);
+  });
   window.addEventListener('scroll', () => {
     if (!eyeArmedUntil || opening || gameActive) return;
     if (desktop.matches && eyeArmedUntil > performance.now() && scrollY > 0 && scrollY < innerHeight * 1.5) {
       startOpening(true);
-      scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      scrollTo(0, 0);
     } else if (scrollY > 30) eyeArmedUntil = 0;
   }, { passive: true });
   window.addEventListener('resize', () => {

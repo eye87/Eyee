@@ -116,14 +116,15 @@ window.eyeeFloatingCTAContent = {
     }
     card.hidden = blocked;
     if (blocked) return;
+    const launcherStyle = launch.hidden ? getComputedStyle(launch) : null;
     const button = launch.hidden
-      ? {left:innerWidth, bottom:(viewport ? viewport.offsetTop + viewport.height : innerHeight) - 20}
+      ? {left:innerWidth, bottom:parseFloat(launcherStyle.top) + parseFloat(launcherStyle.height)}
       : launch.getBoundingClientRect();
     const right = innerWidth - button.left + 20;
     card.style.right = `${right}px`;
     card.style.maxWidth = `${Math.max(0, button.left - 40)}px`;
     const top = Math.max((viewport?.offsetTop || 0) + 12, button.bottom - card.offsetHeight);
-    card.style.top = `${top + (document.documentElement.hasAttribute('data-ios-floating') ? scrollY : 0)}px`;
+    card.style.top = `${top}px`;
   }
   function schedule() {if (!frame) frame = requestAnimationFrame(update);}
   function arm() {

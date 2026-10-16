@@ -1,11 +1,15 @@
 /* Optional reading preferences; native browser zoom and keyboard controls stay available. */
 (() => {
   const root = document.documentElement;
-  // iOS Safari can clip fixed layers at the old toolbar boundary. Keep these
-  // floating controls in document coordinates instead, following the viewport.
-  const documentPositioned = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  // Keep iOS controls inside the stable small viewport, even with bars hidden.
+  // Never track document scroll with absolute-positioned floating controls.
+  const stableIOSViewport = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  root.toggleAttribute('data-ios-floating', documentPositioned);
+  root.toggleAttribute('data-ios-floating', stableIOSViewport);
+  const viewportProbe = document.createElement('span');
+  viewportProbe.setAttribute('aria-hidden', 'true');
+  viewportProbe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none;';
+  if (stableIOSViewport) document.body.append(viewportProbe);
   const key = 'eyee-accessibility';
   const hiddenSessionKey = 'eyee-accessibility-hidden';
   const defaults = {size: 100, contrast: false, dark: false, reading: false, motion: false, hidden: false};
@@ -71,8 +75,8 @@
     placementFrame = 0;
     // Follow Safari's visible area when its browser bars expand or collapse.
     const viewport = window.visualViewport;
-    const visibleBottom = viewport ? viewport.offsetTop + viewport.height : innerHeight;
-    launch.style.setProperty('--accessibility-viewport-bottom', `${visibleBottom + (documentPositioned ? scrollY : 0)}px`);
+    const visibleBottom = stableIOSViewport ? viewportProbe.getBoundingClientRect().height : viewport ? viewport.offsetTop + viewport.height : innerHeight;
+    if (!stableIOSViewport) launch.style.setProperty('--accessibility-viewport-bottom', `${visibleBottom}px`);
     if (!footerBar || !footerLanguage) return;
     const button = launch.getBoundingClientRect();
     const language = footerLanguage.getBoundingClientRect();
@@ -80,7 +84,7 @@
     const offset = needsRoom ? Math.max(0, visibleBottom - footerBar.getBoundingClientRect().top) : 0;
     launch.style.setProperty('--accessibility-footer-offset', `${offset}px`);
     const positioned = launch.getBoundingClientRect();
-    hideLaunch.style.top = `${positioned.top - 30 + (documentPositioned ? scrollY : 0)}px`;
+    hideLaunch.style.top = `${positioned.top - 30}px`;
     hideLaunch.style.right = `${innerWidth - positioned.right - 20}px`;
     updateProximity();
   }
