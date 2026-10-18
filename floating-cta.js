@@ -1,6 +1,10 @@
 /* Content configuration: add page paths or set data-floating-cta on <body>.
    Set data-floating-cta="off" to disable. Destinations can differ per language. */
 window.eyeeFloatingCTAContent = {
+  ux: {
+    nl: {title:'Een duidelijker digitaal product?', text:'Vertel ons waar je gebruikers tegenaan lopen.', button:'Bespreek je plannen', href:'https://eye-entertainment.nl/contact/'},
+    en: {title:'A clearer digital experience?', text:'Tell us where your users get stuck.', button:'Let’s talk', href:'https://eye-entertainment.nl/contact/'}
+  },
   home: {
     nl: {title:'Nieuwe plannen?', text:'Wij denken graag met je mee.', button:'Plan een videocall', href:'#videocall', action:'videocall'},
     en: {title:'New plans?', text:'We’d love to think along with you.', button:'Book a video call', href:'#videocall', action:'videocall'}

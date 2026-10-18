@@ -43,7 +43,7 @@
     if (!gameCssLink) {
       gameCssLink = document.createElement('link');
       gameCssLink.rel = 'stylesheet';
-      gameCssLink.href = 'eye-game.css?v=20261016-7';
+      gameCssLink.href = 'eye-game.css?v=20261017-94';
       document.head.appendChild(gameCssLink);
     }
     // A classic script also works when the concept is opened as a local file.
@@ -52,20 +52,36 @@
     gamePromise = new Promise((resolve, reject) => {
       if (window.EyeeGame?.createEyeGame) { resolve(window.EyeeGame); return; }
       gameScript = document.createElement('script');
-      gameScript.src = 'eye-game-play.js?v=20261016-7';
-      const timeout = setTimeout(() => reject(new Error('Spelcode kon niet laden')), 8000);
+      gameScript.src = 'eye-game-play.js?v=20261017-95';
+      const timeout = setTimeout(() => reject(new Error('Could not load game code')), 8000);
       gameScript.onload = () => {
         clearTimeout(timeout);
         if (window.EyeeGame?.createEyeGame) resolve(window.EyeeGame);
-        else reject(new Error('Spelcode is niet beschikbaar'));
+        else reject(new Error('Game code is unavailable'));
       };
       gameScript.onerror = () => {
         clearTimeout(timeout);
-        reject(new Error('Spelcode kon niet laden'));
+        reject(new Error('Could not load game code'));
       };
       document.head.appendChild(gameScript);
     });
     return gamePromise;
+  }
+  const invitedCode = new URL(location.href).searchParams.get('spel');
+  if (invitedCode === '1' || /^[a-f0-9]{12}$/.test(invitedCode || '')) {
+    void loadGame().then(module => {
+      if (gameActive || opening) return;
+      game ||= module.createEyeGame(() => {
+        gameActive = false;
+        clearEffects();
+        const url = new URL(location.href);
+        url.searchParams.delete('spel');
+        history.replaceState(history.state, '', url.href);
+        brand.focus({ preventScroll: true });
+      });
+      gameActive = true;
+      game.open(invitedCode === '1' ? null : invitedCode);
+    }).catch(error => console.error('The invitation could not open the game:', error));
   }
   function updateEffect() {
     const r = mark.getBoundingClientRect();
@@ -94,6 +110,9 @@
       game ||= module.createEyeGame(() => {
         gameActive = false;
         clearEffects();
+        const url = new URL(location.href);
+        url.searchParams.delete('spel');
+        history.replaceState(history.state, '', url.href);
         brand.focus({ preventScroll: true });
       });
       gameActive = true;
@@ -110,7 +129,7 @@
       gameScript?.remove();
       gameScript = null;
       clearEffects();
-      console.error('Het Eyee-spel kon niet openen:', error);
+      console.error('The Eyee game could not open:', error);
     }
   }
   function startOpening(fromScroll = false) {

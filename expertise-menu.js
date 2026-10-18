@@ -42,7 +42,19 @@
   group.addEventListener('pointerleave', event => {
     if (event.pointerType !== 'mouse') return;
     clearTimers();
-    closeTimer = setTimeout(() => {if (!group.contains(document.activeElement)) close();}, 220);
+    if (panel.contains(document.activeElement)) return;
+    const triggerRect = trigger.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    const movingTowardPanel = !panel.hidden &&
+      event.clientY >= triggerRect.bottom - 12 &&
+      event.clientY <= panelRect.top + 20 &&
+      event.clientX >= panelRect.left - 20 &&
+      event.clientX <= panelRect.right + 20;
+    // Give the pointer time to cross the small visual gap. Sideways exits still close at once.
+    if (movingTowardPanel) closeTimer = setTimeout(() => {
+      if (!group.matches(':hover') && !panel.contains(document.activeElement)) close();
+    }, 180);
+    else close();
   });
   group.addEventListener('focusout', event => {if (!group.contains(event.relatedTarget)) close();});
   document.addEventListener('keydown', event => {if (event.key === 'Escape' && !panel.hidden) {event.preventDefault(); close(true);}});

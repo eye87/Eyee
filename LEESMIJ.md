@@ -24,6 +24,21 @@ De bestaande brede dienstenlijst is teruggebracht tot research, UX/UI design en 
 
 ## Interactie
 
+### Verborgen Eyee-spel
+
+Op desktop opent het spel door bovenaan met de muis op het oog in het logo naar beneden te scrollen. De spelcode en spelopmaak worden pas daarna geladen. Met Escape of de sluitknop sluit je het spel.
+
+Twee gelijktijdige bezoekers worden automatisch in een kamer geplaatst. De tweede speler is een lichtblauwe happer; de verzamelde punten zijn gedeeld. Hiervoor moet `eye-game-room.php` naast `index.html` op een PHP-hosting staan. De PHP-code bewaart alleen tijdelijke spelposities en punten in de schrijfbare systeemmap voor tijdelijke bestanden. Zonder PHP, bijvoorbeeld bij lokaal openen als HTML-bestand of via een statische previewserver, blijft het solospel gewoon werken.
+
+Met **Nodig iemand uit** kopieert een speler een link naar diens spelkamer. De ontvanger komt via die link meteen in het spel, ook op mobiel. Na het delen wordt de kamer afgeschermd voor automatische koppeling met willekeurige bezoekers; de genodigde kan nog aansluiten. Een kamer blijft bestaan zolang er minstens één speler actief is. Een verlopen of volle uitnodiging opent het spel in een nieuwe kamer. In de statische preview opent de link direct het solospel; voor samenspelen is PHP-hosting nodig.
+Op mobiel stuurt vegen over het spelbord de happer; bij de blaster schiet een tik op het bord.
+
+Bij ieder voltooide speelveld start het volgende level met een groter bord. Na iedere 1000 punten kies je een extra leven, vijf seconden spookpauze of een blaster. Met spatie schiet de blaster in de kijkrichting; een spookje verdwijnt na vijf treffers. De top 5 van bezoekers wordt op PHP-hosting bewaard via `eye-game-scores.php` in `game-data/leaderboard.php`. Die map moet schrijfbaar zijn voor PHP; het scorebestand voert bij direct webbezoek geen scoredata uit. Bij een statische lokale preview gebruikt de top 5 alleen browseropslag. De naamvraag verschijnt bij een vrije plek of zodra een score hoger is dan nummer vijf.
+
+Vanaf level 2 verschijnt af en toe een tijdelijk 2×- of 3×-bonuspunt op een vrije plek in het speelveld. Wie het oppakt, verdubbelt of verdrievoudigt zeven seconden lang de punten van verzamelde stippen. In een gedeeld spel geldt de bonus voor de gezamenlijke score en bewaart de PHP-spelkamer de extra punten voor de top 5.
+
+In de lokale preview verschijnt de knop **Tweede speler simuleren**. Daarmee speelt een computerhapper mee en zie je hoe de gedeelde punten en twee happers eruitzien. Dit is een visuele test op één apparaat; de echte verbinding tussen verschillende apparaten gebruikt de PHP-hosting.
+
 - Het hoofdmenu zweeft in een lage, witte, afgeronde balk boven de pagina. Op brede schermen staan alle items direct in de balk; onder 900 px blijft de menuknop beschikbaar. Tijdens scrollen wordt de balk smaller en lager; bovenaan wordt hij weer ruim.
 
 - De eigen projectvideo groeit van een centraal venster naar de volle breedte tijdens scrollen.

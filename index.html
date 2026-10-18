@@ -19,7 +19,7 @@
       href="style.css?v=20261016-footer-accessibility-divider"
     />
     <link rel="stylesheet" href="menu.css?v=20261016-11" />
-    <link rel="stylesheet" href="expertise-menu.css?v=20261016-10" />
+    <link rel="stylesheet" href="expertise-menu.css?v=20261016-13" />
     <link rel="stylesheet" href="accessibility.css?v=20261016-18" />
     <link rel="stylesheet" href="floating-cta.css?v=20261016-6" />
     <link rel="stylesheet" href="videocall.css?v=20261016-1" />
@@ -169,7 +169,7 @@
               </svg></span></span>
                   <span class="expertise-pillar-copy"><span class="expertise-title"><strong>Gebruikersonderzoek</strong><span class="expertise-arrow" aria-hidden="true"></span></span><span class="expertise-description">Ontdek wat je gebruikers nodig hebben.</span></span>
                 </a>
-                <a class="expertise-pillar" href="https://eye-entertainment.nl/ui-ux-design/">
+                <a class="expertise-pillar" href="ui-ux-design.html">
                   <span class="expertise-pillar-icon expertise-pillar-design"><span class="service-art design-art" aria-hidden="true"><i></i><i></i></span></span>
                   <span class="expertise-pillar-copy"><span class="expertise-title"><strong>UX &amp; UI design</strong><span class="expertise-arrow" aria-hidden="true"></span></span><span class="expertise-description">Heldere interfaces die prettig werken.</span></span>
                 </a>
@@ -186,7 +186,7 @@
                 <li><a href="https://eye-entertainment.nl/webshops/"><span>Webshops</span></a></li>
                 <li><a href="https://eye-entertainment.nl/bedrijfsapplicaties/"><span>Bedrijfsapplicaties</span></a></li>
                 <li><a href="https://eye-entertainment.nl/ios-android-apps/"><span>iOS &amp; Android Apps</span></a></li>
-                <li><a href="https://eye-entertainment.nl/ui-ux-design/"><span>UX &amp; Platform Design</span></a></li>
+                <li><a href="ui-ux-design.html"><span>UX &amp; Platform Design</span></a></li>
                 <li><a href="https://eye-entertainment.nl/magento-en-shopware/"><span>Magento &amp; Shopware</span></a></li>
                 <li><a href="https://eye-entertainment.nl/seo-optimalisatie/"><span>SEO optimalisatie</span></a></li>
                 <li><a href="https://eye-entertainment.nl/onderhoud/"><span>Ondersteuning &amp; Onderhoud</span></a></li>
@@ -222,26 +222,71 @@
     </header>
     <div class="expertise-scrim" aria-hidden="true" hidden></div>
     <template id="eye-game-template">
-    <dialog id="eye-game" class="eye-game" aria-labelledby="eye-game-title" aria-describedby="eye-game-instructions">
+    <dialog id="eye-game" class="eye-game" lang="en" aria-label="Eyee game" aria-describedby="eye-game-instructions">
       <div class="eye-game-inner">
         <div class="eye-game-top">
-          <div class="eye-game-brand"><img src="assets/beeldmerk.svg" alt="" />eyee</div>
-          <button class="eye-game-close" type="button" aria-label="Spel sluiten">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 4 20 20M20 4 4 20" /></svg>
-          </button>
+          <div class="eye-game-brand"><img src="assets/eyee-menu-logo.svg" alt="Eyee" /></div>
+          <div class="eye-game-top-actions">
+            <button class="eye-game-test-boss" type="button" title="Jump to the final boss (test run)">Test final boss</button>
+            <button class="eye-game-close" type="button" aria-label="Close game">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 4 20 20M20 4 4 20" /></svg>
+            </button>
+          </div>
         </div>
         <div class="eye-game-heading">
-          <h2 id="eye-game-title">Oog voor punten.</h2>
-          <p id="eye-game-instructions">Het oog beweegt vanzelf. Neem het over met de pijltjestoetsen of WASD, verzamel de punten en ontwijk de spookjes.</p>
+          <span class="eye-game-score-label">Score</span>
+          <strong class="eye-game-score" id="eye-game-score">0000</strong>
+          <div class="eye-game-xp" aria-label="XP progress">
+            <div class="eye-game-xp-labels"><span id="eye-game-xp-level">XP level 1</span><span id="eye-game-xp-count">0 / 500 XP</span></div>
+            <div class="eye-game-xp-track" id="eye-game-xp-track" role="progressbar" aria-label="XP to next level" aria-valuemin="0" aria-valuemax="500" aria-valuenow="0"><span id="eye-game-xp-fill"></span></div>
+          </div>
+          <div class="eye-game-lives" id="eye-game-lives" aria-label="3 lives"><i class="eye-game-life"></i><i class="eye-game-life"></i><i class="eye-game-life"></i></div>
+          <span class="eye-game-level" id="eye-game-level">Level 1</span>
+          <p id="eye-game-instructions" class="eye-game-sr-only">The eye moves on its own. Steer with the arrow keys, WASD, or swipe across the board. Collect every dot. When the mini-boss appears, pick up the blaster or a blaster upgrade, dodge its shots, and defeat it. A key will appear for the green door at the bottom. Avoid the ghosts. Multipliers can appear in every level. Earn XP to level up and choose whether to buy or skip an upgrade. Each XP level takes more XP than the last. Press Space or tap the board to fire your blaster.</p>
         </div>
         <div class="eye-game-layout">
-          <div class="eye-game-board-wrap"><canvas id="eye-game-board" width="532" height="420" role="img" aria-label="Spelbord met het Eyee-oog, punten en spookjes"></canvas></div>
+          <div class="eye-game-stage">
+            <div class="eye-game-board-wrap"><canvas id="eye-game-board" width="532" height="420" role="img" aria-label="Game board with the Eyee eye, dots, and ghosts"></canvas><span class="eye-game-multiplier" id="eye-game-multiplier" hidden><strong>2×</strong><span>points · 7 sec</span></span><div class="eye-game-board-hud"><span class="eye-game-rage-timer" id="eye-game-rage-timer" hidden><strong>Rage</strong><span>5 sec</span></span><div class="eye-game-ghost-cooldown" hidden aria-label="Ghost freeze"><span>5</span></div></div><div class="eye-game-magnet-timer" hidden aria-label="Dot magnet"><span>8</span></div></div>
+            <aside class="eye-game-progress" aria-label="Descent progress"><ol id="eye-game-progress-list"></ol></aside>
+            <aside class="eye-game-leaderboard" aria-labelledby="eye-game-leaderboard-title" hidden>
+              <p class="eye-game-over-label">Game over</p>
+              <h3 id="eye-game-leaderboard-title">Top 5</h3>
+              <ol id="eye-game-leaderboard-list"></ol>
+              <form class="eye-game-name-form" hidden>
+                <label for="eye-game-name">You made the Top 5! What name should we use?</label>
+                <div><input id="eye-game-name" name="name" maxlength="24" autocomplete="nickname" required placeholder="Name or username" /><button type="submit">Save score</button></div>
+              </form>
+              <p class="eye-game-leaderboard-note" role="status" aria-live="polite"></p>
+              <button class="eye-game-restart" type="button">Play again</button>
+            </aside>
+            <div class="eye-game-victory" hidden role="status"><span>THE CORE</span><h3>Final boss defeated.</h3><p>You made it all the way down.</p><button type="button">Play again</button></div>
+          </div>
+          <div class="eye-game-controls">
+            <button class="eye-game-invite" type="button" disabled>Invite a friend</button>
+            <button class="eye-game-simulate" type="button" hidden>Simulate second player</button>
+          </div>
           <div class="eye-game-status">
-            <div><span class="eye-game-score-label">Score</span><strong class="eye-game-score" id="eye-game-score">0000</strong></div>
-            <div><span class="eye-game-score-label">Levens</span><div class="eye-game-lives" id="eye-game-lives" aria-label="3 levens"><i class="eye-game-life"></i><i class="eye-game-life"></i><i class="eye-game-life"></i></div></div>
-            <p class="eye-game-message" id="eye-game-message" role="status" aria-live="polite">Daar gaan we!</p>
-            <button class="eye-game-restart" type="button">Opnieuw spelen</button>
-            <span class="eye-game-hint">Tip: Escape sluit het spel.</span>
+            <p class="eye-game-invite-status" role="status" aria-live="polite" hidden></p>
+            <p class="eye-game-message" id="eye-game-message" role="status" aria-live="polite">Here we go!</p>
+            <p class="eye-game-room-status" role="status" aria-live="polite" hidden></p>
+            <span class="eye-game-power" id="eye-game-power" hidden></span>
+            <span class="eye-game-hint">Arrow keys or WASD · swipe on mobile · Escape closes the game.</span>
+          </div>
+        </div>
+        <div class="eye-game-upgrade" hidden role="dialog" aria-modal="true" aria-labelledby="eye-game-upgrade-title" aria-describedby="eye-game-upgrade-hint">
+          <div class="eye-game-upgrade-panel">
+            <span class="eye-game-upgrade-kicker"><span class="eye-game-upgrade-coin" aria-hidden="true">✦</span><strong id="eye-game-upgrade-balance">1,000</strong> points available</span>
+            <h3 id="eye-game-upgrade-title">Choose an upgrade</h3>
+            <p>A little extra power for the road ahead. Pick what suits you.</p>
+            <div class="eye-game-upgrade-options">
+              <button type="button" data-upgrade="life"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 40 8.7 25.4C2.5 19.5 6.1 9 15 9c4.3 0 7.3 2.2 9 5.6C25.7 11.2 28.7 9 33 9c8.9 0 12.5 10.5 6.3 16.4L24 40Z"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">500</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Extra life</strong><span class="eye-game-upgrade-description">One more chance.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+              <button type="button" data-upgrade="pause"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/><path d="M15 33V22a9 9 0 0 1 18 0v11l-4.5-3-4.5 3-4.5-3-4.5 3Z"/><circle cx="21" cy="22" r="1.2" fill="currentColor" stroke="none"/><circle cx="27" cy="22" r="1.2" fill="currentColor" stroke="none"/><path d="M10 38 38 10" stroke-width="4"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">300</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Ghost freeze</strong><span class="eye-game-upgrade-description">Five seconds of peace.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+              <button type="button" data-upgrade="blaster"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M6 18h24l5 3h5v8h-5l-5 3H20l-2 9h-7l-2-9H6V18Z"/><path d="M13 24h13M41 15l3-3M43 24h3M41 33l3 3"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">300</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Blaster level 1</strong><span class="eye-game-upgrade-description">Fire with Space.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+              <button type="button" data-upgrade="magnet"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M11 12v16a13 13 0 0 0 26 0V12"/><path d="M11 8h8v13h-8zM29 8h8v13h-8z" fill="currentColor" stroke="none"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">300</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Dot magnet</strong><span class="eye-game-upgrade-description">Pull in dots for eight seconds.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+              <button type="button" data-upgrade="wallEater"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M12 41 30 16M9 17c10-8 23-8 32 1-8-1-14 1-19 6M28 14l4 6"/><path d="m9 17-2 5m34-4 1 5"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">500</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Wall chomper</strong><span class="eye-game-upgrade-description">Bite through inner walls and ghosts for 20 seconds.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+            </div>
+            <button class="eye-game-upgrade-skip" type="button"><strong>Skip upgrade</strong><small>Keep your points and carry on</small></button>
+            <p class="eye-game-upgrade-hint" id="eye-game-upgrade-hint">Release your keys first · choose with WASD or arrow keys · press Space again to confirm</p>
           </div>
         </div>
       </div>
@@ -1151,7 +1196,7 @@
         </div>
         <div class="service-triptych" aria-label="Onze hoofddiensten">
           <a
-            href="https://eye-entertainment.nl/ui-ux-design/"
+            href="ui-ux-design.html"
             id="gebruikersonderzoek"
             class="service-panel service-research"
             ><div class="service-art research-art" aria-hidden="true">
@@ -1196,7 +1241,7 @@
               /></svg
           ></a>
           <a
-            href="https://eye-entertainment.nl/ui-ux-design/"
+            href="ui-ux-design.html"
             id="ux-ui-design"
             class="service-panel service-design"
             ><div class="service-art design-art" aria-hidden="true">
@@ -1831,7 +1876,7 @@
             <nav aria-label="Diensten">
               <h3>Wat we doen</h3>
               <a href="#gebruikersonderzoek"><span>Gebruikersonderzoek</span></a>
-              <a href="https://eye-entertainment.nl/ui-ux-design/"><span>UX &amp; UI design</span></a>
+              <a href="ui-ux-design.html"><span>UX &amp; UI design</span></a>
               <a href="https://eye-entertainment.nl/websites/"><span>Websites &amp; platformen</span></a>
               <a href="#betrouwbare-techniek"><span>Techniek &amp; koppelingen</span></a>
               <a href="https://eye-entertainment.nl/onderhoud/"><span>Onderhoud &amp; doorontwikkeling</span></a>
@@ -1877,10 +1922,10 @@
         </footer>
       </div>
     <script src="script.js?v=20261016-mobile-submenu-5"></script>
-    <script src="expertise-menu.js?v=20261016-1"></script>
+    <script src="expertise-menu.js?v=20261016-3"></script>
     <script src="translations.js?v=20261016-expertise-5"></script>
     <script src="accessibility.js?v=20261016-16"></script>
     <script src="floating-cta.js?v=20261016-8"></script>
-    <script src="eye-game.js?v=20261016-7"></script>
+    <script src="eye-game.js?v=20261017-104"></script>
   </body>
 </html>
