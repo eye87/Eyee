@@ -43,8 +43,16 @@ html[data-a11y-motion] .ux-project-window img {transition:none;}
  .ux-detail #ux-main .ux-work .ux-cases article > p {color:white;}
  .ux-work .ux-more-cases {display:flex; background:var(--color-blue);}
  .ux-work .ux-more-cases .case-all-card {display:flex; flex-direction:column; justify-content:flex-end; padding:24px; color:white; border-radius:0;}
- .ux-work .case-all-card > span {display:grid; gap:12px;}
- .ux-work .case-all-card strong {display:flex; align-items:center; gap:16px; font:700 28px/1.1 "GT Walsheim Pro",Avenir,sans-serif; letter-spacing:-.035em;}
- .ux-work .case-all-title-arrow {opacity:1; transform:none;}
+ .ux-work .case-all-card > span {display:grid; gap:0;}
+ .ux-work .case-all-card strong {display:block; margin-bottom:12px; font:700 26px/1.2 Avenir,Arial,Helvetica,sans-serif; letter-spacing:normal;}
+ .ux-projects-word {white-space:nowrap;}
+ .ux-work .case-all-title-arrow {display:inline-block; margin-left:12px; vertical-align:middle; opacity:1; transform:none;}
+ .ux-work .ux-more-cases .case-all-card,.ux-work .ux-more-cases:is(:hover,:focus-within) .case-all-card {translate:none;}
+ .ux-work .ux-more-cases .case-all-card:is(:hover,:focus-visible) .case-all-title-arrow {transform:none;}
+ .ux-work .ux-cases .ux-case-image:is(:hover,:focus-visible) > img {transform:none;}
  .ux-work .case-all-card > span > span {font-size:16px; line-height:1.5;}
+ @media(hover:hover) and (prefers-reduced-motion:no-preference) {
+  html:not([data-a11y-motion]) .ux-work .ux-cases > :is(article,.ux-more-cases) {transition:translate .35s cubic-bezier(.22,.61,.36,1);}
+  html:not([data-a11y-motion]) .ux-work .ux-cases > :is(article,.ux-more-cases):is(:hover,:focus-within) {translate:0 -8px;}
+ }
 }
