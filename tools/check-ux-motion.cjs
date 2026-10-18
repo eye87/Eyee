@@ -14,11 +14,8 @@ const {chromium}=require('/Users/jbrugman/.cache/codex-runtimes/codex-primary-ru
    const video=page.locator('#hero-video');
    assert.equal(await video.evaluate(e=>e.muted&&e.loop&&e.playsInline),true);
    assert.equal(await page.locator('.ux-hero-pause,.ux-reel-launch').count(),0);
-   const disclosure=page.locator('.ux-service-disclosures summary').first();
-   await disclosure.hover();await page.waitForTimeout(350);
-   assert.equal(await disclosure.evaluate(e=>getComputedStyle(e).color),'rgb(53, 88, 253)');
-   await disclosure.click();
-   assert.equal(await disclosure.locator('span').last().evaluate(e=>getComputedStyle(e,'::after').content),'"−"');
+   assert.equal(await page.locator('.ux-service-chapter').count(),3);
+   assert.equal(await page.locator('.ux-service-disclosures').count(),0);
    const card=page.locator('.ux-case-image').first();
    await card.scrollIntoViewIfNeeded();await page.waitForTimeout(750);
    await card.hover();

@@ -14,9 +14,9 @@ function createEyeGame(onClose) {
   const leaderboardNode = $('.eye-game-leaderboard'), cooldownNode = $('.eye-game-ghost-cooldown'), magnetNode = $('.eye-game-magnet-timer');
   const progressNode = $('#eye-game-progress-list');
   const directions = [{x:1,y:0,angle:0},{x:0,y:1,angle:Math.PI/2},{x:-1,y:0,angle:Math.PI},{x:0,y:-1,angle:-Math.PI/2}];
-  const key = (x,y) => `${x},${y}`, size = 28, stepDuration = 112, bonusVisibleMs = 10000, finalLevel = 5;
+  const key = (x,y) => `${x},${y}`, size = 28, stepDuration = 128, bonusVisibleMs = 10000, finalLevel = 5, bossTransitionMs = 3200, bossEntryMs = 1300, bossSafetyMs = 2600;
   let cols, rows, level, walls, dots, player, previousPlayer, ghosts, previousGhosts, wanted, moving;
-  let score, earnedScore, lives, state, tick, hasInput, invulnerableUntil, ghostStartAt, ghostPausedUntil, magnetUntil, blasterLevel, wallEaterLevel, wallEaterUntil, beamUntil, beamEnd;
+  let score, earnedScore, lives, state, tick, hasInput, invulnerableUntil, ghostStartAt, ghostPausedUntil, magnetLevel, magnetUntil, blasterLevel, wallEaterLevel, wallEaterUntil, beamUntil, beamEnd;
   let nextUpgradeLevel, pendingLevel, upgradePending = false, upgradeOpenedAt = 0, magnetRemainingAtUpgrade = 0, wallEaterRemainingAtUpgrade = 0, rageRemainingAtUpgrade = 0, bonusRemainingAtUpgrade = 0, frame = 0, lastFrame = 0, elapsed = 0, levelTimer = 0, descentSnapshot = null, nextPeek = null, hitTimer = 0, hitAt = 0, hitPosition = null;
   let room = null, roomPoll = 0, roomBusy = false, roomRestart = false, roomAdvance = false, joiningRoom = false;
   let remotePlayer = null, remoteFrom = null, remoteUpdatedAt = 0, networkFailures = 0, simulating = false, unranked = false;
@@ -24,7 +24,9 @@ function createEyeGame(onClose) {
   let bonus = null, nextBonusAt = 0, multiplier = 1, multiplierUntil = 0, pendingBonusClaim = null;
   let rageUntil = 0, nextRageAt = 0, bossRageWave = 0, bossRageWaveId = 0, bossRageVisual = 0;
   let phase = 'dots', boss = null, bossHp = 0, bossMaxHp = 0, bossBlaster = false, bossProjectiles = [], bossNextShotAt = 0, bossStartedAt = 0, droppedKey = null, hasKey = false, lastBossHit = 0, testingFinalBoss = false;
-  let bossStage = 1, bossStage2StartedAt = 0, floorDamage = 0, floorBreakX = 0, floorImpacts = [], bossSlamHandled = -1, bossVisualX = null;
+  let bossStage = 1, bossStage2StartedAt = 0, bossTransitionStartedAt = 0, bossTransitionX = 0, bossTransitionY = 0, bossFallStartedAt = 0, floorDamage = 0, floorBreakX = 0, floorImpacts = [], bossSlamHandled = -1, bossVisualX = null;
+  const escapeHeight=180, escapeRows=21, escapeLayerHeight=escapeHeight/finalLevel;
+  let escape=null;
   let pendingBossHits = [], pendingBlasterPickup = false, pendingKeyClaim = false, bossHitSequence = 0;
   const pendingEaten = new Set();
   const pendingBrokenWalls = new Set(), wallBreaks = [];
@@ -32,8 +34,8 @@ function createEyeGame(onClose) {
   let ghostKillSequence = 0, purchaseSequence = 0;
   const heldGameKeys = new Set();
   const ghostColors=['#9fd9ff','#fff1b5','#ffb7c9','#cbb6ff','#aaf0d1'];
-  const upgradeCost=type=>type==='life'||type==='wallEater'?500:type==='pause'||type==='magnet'?300:type==='blaster'&&blasterLevel<5?300*(blasterLevel+1):Infinity;
-  const xpNeededForLevel=level=>{const steps=level-1;return 500+200*steps+50*steps*steps;};
+  const magnetDuration=level=>Math.max(5,9-level);
+  const xpNeededForLevel=level=>{const steps=level-1;return 750+300*steps+75*steps*steps;};
   const dotPoints=count=>Math.round(count*10*multiplier*(Date.now()<rageUntil?1.2:1));
   function xpProgress(totalXp) {
     let level=1, earned=Math.max(0,Math.floor(totalXp||0)), needed=xpNeededForLevel(level);
@@ -93,10 +95,12 @@ function createEyeGame(onClose) {
     for(let n=1;n<=count;n++) {
       const item=document.createElement('li');
       const layer=layers[n-1] || 'Unknown Depths';
-      item.className=`eye-game-progress-stratum layer-${Math.min(n,5)} ${n<level?'is-done':n===level?'is-current':''}`;
-      item.setAttribute('aria-label',`Level ${n}, ${layer}${n===level?', current level':n<level?', completed':', coming up'}`);
-      if(n===level) item.setAttribute('aria-current','step');
-      item.innerHTML=`<span class="eye-game-progress-node">${n<level?'✓':n}</span><span class="eye-game-progress-copy"><span class="eye-game-progress-layer">${layer}</span><span class="eye-game-progress-text">${n===level?'You are here':n<level?'Completed':'Level '+n}</span></span>`;
+      const current=escape?Math.max(1,Math.min(finalLevel,Math.floor(player.y/escapeLayerHeight)+1)):level;
+      const done=escape?.completed || (escape?n>current:n<current);
+      item.className=`eye-game-progress-stratum layer-${Math.min(n,5)} ${done?'is-done':n===current?'is-current':''}`;
+      item.setAttribute('aria-label',`Level ${n}, ${layer}${done?', completed':n===current?', current level':', coming up'}`);
+      if(n===current && !done) item.setAttribute('aria-current','step');
+      item.innerHTML=`<span class="eye-game-progress-node">${done?'✓':n}</span><span class="eye-game-progress-copy"><span class="eye-game-progress-layer">${layer}</span><span class="eye-game-progress-text">${done?escape?'Escaped':'Completed':n===current?escape?'Climbing out':'You are here':'Level '+n}</span></span>`;
       progressNode.append(item);
     }
   }
@@ -112,8 +116,9 @@ function createEyeGame(onClose) {
   function startBossPhase() {
     if(phase!=='dots') return;
     phase='boss';boss={x:doorX(),y:Math.max(3,Math.floor(rows/2)-2),dx:1};
-    bossMaxHp=level===finalLevel?32:Math.max(5,level+4);bossHp=bossMaxHp;bossBlaster=false;bossProjectiles=[];bossStartedAt=Date.now();bossNextShotAt=Date.now()+1300;
-    bossStage=1;bossStage2StartedAt=0;floorDamage=0;floorBreakX=doorX();floorImpacts=[];bossSlamHandled=-1;bossVisualX=null;
+    bossMaxHp=level===finalLevel?32:Math.max(5,level+4);bossHp=bossMaxHp;bossBlaster=false;bossProjectiles=[];bossStartedAt=Date.now();bossNextShotAt=bossStartedAt+bossSafetyMs;
+    invulnerableUntil=Math.max(invulnerableUntil,bossStartedAt+bossSafetyMs);
+    bossStage=1;bossStage2StartedAt=0;bossTransitionStartedAt=0;bossFallStartedAt=0;floorDamage=0;floorBreakX=doorX();floorImpacts=[];bossSlamHandled=-1;bossVisualX=null;
     boardWrap.classList.toggle('is-final-boss',level===finalLevel);
     projectileBursts.length=0;ghostBursts.length=0;
     droppedKey=null;hasKey=false;bonus=null;ghosts=[];previousGhosts=[];
@@ -124,19 +129,55 @@ function createEyeGame(onClose) {
     renderProgress();
   }
   function startFinalBossSecondPhase() {
-    if(!finalBossActive() || bossStage===2) return;
-    bossStage=2;bossStage2StartedAt=Date.now();floorDamage=0;floorBreakX=doorX();floorImpacts=[];bossSlamHandled=-1;
+    if(!finalBossActive() || bossStage!==1) return;
+    bossTransitionX=boss.x;bossTransitionY=boss.y;bossTransitionStartedAt=Date.now();bossStage=3;
+    floorDamage=0;floorBreakX=doorX();floorImpacts=[];bossSlamHandled=-1;bossFallStartedAt=0;
     bossHp=0;bossProjectiles=[];ghosts=[];previousGhosts=[];rageUntil=0;nextRageAt=Infinity;updateRageStatus();
-    boss.x=doorX();boss.y=Math.max(3,Math.floor(rows/2)-2);boss.dx=0;bossVisualX=boss.x;
-    testBossButton.textContent='Test final boss';testBossButton.title='Restart the final boss test';
+    boss.dx=0;bossVisualX=boss.x;
+    if(testingFinalBoss) {testBossButton.textContent='Test escape';testBossButton.title='Jump to the lava escape (test run)';}
+    updateStatus('The boss collapses... but something is stirring.');
+  }
+  function beginBossRagePhase(startedAt=Date.now()) {
+    bossStage=2;bossStage2StartedAt=startedAt;boss.x=bossTransitionX;boss.y=2;boss.dx=0;bossVisualX=boss.x;
+    if(testingFinalBoss) {testBossButton.textContent='Test escape';testBossButton.title='Jump to the lava escape (test run)';}
     floaters.push({x:boss.x,y:boss.y,text:'PHASE 2',color:'#ffd29a',subtle:false,start:performance.now()});
     updateStatus('Phase 2! The boss tracks you from above. Dodge the dive and let it break the floor.');
   }
-  function finishFinalBoss() {
-    score+=500;earnedScore+=500;floatScore(Math.max(1,Math.min(cols-2,Math.round(boss?.x??doorX()))),rows-2,500,'#ffd19d');
-    boss=null;bossProjectiles=[];ghosts=[];previousGhosts=[];phase='won';state='won';
-    updateStatus('The floor gives way! The final boss falls into the lava. You reached the core.');
-    victoryNode.hidden=false;victoryNode.querySelector('button').focus({preventScroll:true});
+  function startEscape(startedAt=Date.now(),award=true) {
+    clearLevelDescent();
+    if(award) {score+=500;earnedScore+=500;}
+    boss=null;bossProjectiles=[];ghosts=[];previousGhosts=[];phase='escape';state=upgradePending?'upgrade':'playing';
+    cols=27;rows=escapeRows;resizeBoard();canvas.setAttribute('aria-label','Escape through five rising levels. Avoid the lava and reach the rocket.');
+    player=previousPlayer={x:doorX(),y:escapeHeight-5};moving=wanted=directions[3];hasInput=false;
+    escape={startedAt,runAt:0,lavaY:escapeHeight+1,previousLavaY:escapeHeight+1,cameraY:escapeHeight-escapeRows,lastDrawAt:0,obstacles:buildEscapeObstacles(),ghosts:buildEscapeGhosts(),shots:[],shards:[],shotCount:0,lastShotAt:0,launchAt:0,lastStratum:5};
+    invulnerableUntil=startedAt+3300;magnetUntil=0;updateMagnetTimer();boardWrap.classList.add('is-final-boss');victoryNode.hidden=true;
+    testBossButton.hidden=testingFinalBoss;
+    updateStatus('The lava is bubbling... press ↑ or W (or swipe up) to start the climb!');renderProgress();checkUpgrade();
+  }
+  function finishEscape() {
+    if(phase==='won') return;
+    phase='won';state='won';if(escape) escape.completed=true;updateStatus('You made it back to the surface. The rocket takes you to safety!');
+    victoryNode.hidden=false;victoryNode.querySelector('button').focus({preventScroll:true});renderProgress();
+  }
+  function buildEscapeObstacles() {
+    const blocks=new Set();
+    [4,3,2,1].forEach((layer,index)=>{
+      const y=layer*escapeLayerHeight;
+      const gap=[14,8,18,11][index];
+      for(let x=1;x<cols-1;x++) if(Math.abs(x-gap)>2) blocks.add(key(x,y));
+    });
+    for(let y=9;y<escapeHeight-7;y+=11) {
+      if(y%escapeLayerHeight===0) continue;
+      const start=3+(Math.floor(y/9)*7)%(cols-10);
+      for(let x=start;x<start+3;x++) blocks.add(key(x,y));
+    }
+    return blocks;
+  }
+  function buildEscapeGhosts() {
+    return Array.from({length:9},(_,index)=>{
+      const x=5+(index*7)%17;
+      return {x,previousX:x,y:escapeHeight-19-index*18,homeX:x,phase:index*1.7,color:ghostColors[index%ghostColors.length],dead:false};
+    });
   }
   function defeatBoss() {
     if(phase!=='boss' || !boss) return;
@@ -181,7 +222,7 @@ function createEyeGame(onClose) {
     xpTrackNode.setAttribute('aria-valuenow',String(xp.earned));
     xpTrackNode.setAttribute('aria-valuetext',`${xp.earned} of ${xp.needed} XP towards level ${xp.level+1}`);
     xpFillNode.style.width=`${xp.earned/xp.needed*100}%`;
-    levelNode.textContent = `Level ${level}`;
+    levelNode.textContent = escape?`Escape · Level ${Math.max(1,Math.min(finalLevel,Math.floor(player.y/escapeLayerHeight)+1))}`:`Level ${level}`;
     livesNode.innerHTML = Array.from({length:Math.max(0,lives)},()=>'<i class="eye-game-life"></i>').join('');
     livesNode.setAttribute('aria-label',`${lives} ${lives===1?'life':'lives'}`);
     if (message) messageNode.textContent = message;
@@ -249,9 +290,9 @@ function createEyeGame(onClose) {
     magnetNode.hidden=!remaining;
     if (!remaining) return;
     const seconds=Math.ceil(remaining/1000);
-    magnetNode.style.setProperty('--cooldown-progress',`${remaining/8000*100}%`);
+    magnetNode.style.setProperty('--cooldown-progress',`${remaining/(magnetDuration(magnetLevel)*1000)*100}%`);
     magnetNode.querySelector('span').textContent=String(seconds);
-    magnetNode.setAttribute('aria-label',`Dot magnet: ${seconds} seconds left`);
+    magnetNode.setAttribute('aria-label',`Dot magnet level ${magnetLevel}: ${seconds} seconds left`);
   }
   function floatScore(x,y,points,color='#fff',subtle=false,group='local') {
     const now=performance.now();
@@ -337,8 +378,8 @@ function createEyeGame(onClose) {
     if(!descending) clearLevelDescent();
     clearTimeout(hitTimer); boardWrap.classList.remove('is-hit');
     pendingLevel = false; pendingEaten.clear(); pendingBrokenWalls.clear(); pendingGhostKills.clear(); ghostKillSequence=0; floaters.length=0;wallBreaks.length=0;projectileBursts.length=0;ghostBursts.length=0; hitAt=0;
-    level = number; cols = level===1?17:17+2*level; rows = level===1?13:13+2*level; makeWalls(); resizeBoard();
-    phase='dots';boss=null;bossHp=0;bossMaxHp=0;bossBlaster=false;bossProjectiles=[];bossNextShotAt=0;bossStartedAt=0;droppedKey=null;hasKey=false;lastBossHit=0;pendingBossHits=[];pendingBlasterPickup=false;pendingKeyClaim=false;bossHitSequence=0;bossStage=1;bossStage2StartedAt=0;floorDamage=0;floorBreakX=doorX();floorImpacts=[];bossSlamHandled=-1;bossVisualX=null;boardWrap.classList.remove('is-final-boss');renderProgress();
+    escape=null;level = number; cols = level===1?17:17+2*level; rows = level===1?13:13+2*level; makeWalls(); resizeBoard();canvas.setAttribute('aria-label','Game board with the Eyee eye, dots, and ghosts');
+    phase='dots';boss=null;bossHp=0;bossMaxHp=0;bossBlaster=false;bossProjectiles=[];bossNextShotAt=0;bossStartedAt=0;droppedKey=null;hasKey=false;lastBossHit=0;pendingBossHits=[];pendingBlasterPickup=false;pendingKeyClaim=false;bossHitSequence=0;bossStage=1;bossStage2StartedAt=0;bossTransitionStartedAt=0;bossFallStartedAt=0;floorDamage=0;floorBreakX=doorX();floorImpacts=[];bossSlamHandled=-1;bossVisualX=null;boardWrap.classList.remove('is-final-boss');renderProgress();
     wallEaterLevel=0;wallEaterUntil=0;
     dots = new Set();
     for (let y=1;y<rows-1;y++) for (let x=1;x<cols-1;x++) if (passable(x,y) && (x!==1 || y!==1)) dots.add(key(x,y));
@@ -357,7 +398,7 @@ function createEyeGame(onClose) {
     const livesEarned=Math.max(0,number-level);
     lives+=livesEarned;
     const announceLife=()=>{if(livesEarned) updateStatus(`Level ${number}! +${livesEarned} ${livesEarned===1?'life':'lives'} earned.`);};
-    if(matchMedia('(prefers-reduced-motion: reduce)').matches || !canvas.width) {beginLevel(number,incomingScore);announceLife();return;}
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches || !canvas.width) {beginLevel(number,incomingScore);announceLife();checkUpgrade();return;}
     const previous=boardWrap.getBoundingClientRect();
     const oldImage=canvas.toDataURL('image/png');
     beginLevel(number,incomingScore,true);
@@ -381,12 +422,12 @@ function createEyeGame(onClose) {
       boardWrap.classList.add('is-descending-active');
       boardWrap.style.width=`${next.width}px`;boardWrap.style.height=`${next.height}px`;
     });
-    levelTimer=setTimeout(()=>{clearLevelDescent();if(state==='transition') {state='playing';invulnerableUntil=Date.now()+1800;checkUpgrade();}},1150);
+    levelTimer=setTimeout(()=>{clearLevelDescent();if(state==='transition') {state=upgradePending?'upgrade':'playing';invulnerableUntil=Date.now()+1800;if(!upgradePending) checkUpgrade();}},1150);
   }
   function newGame() {
     roomRestart=false; roomAdvance=false; savedName=''; unranked=simulating; runId=`${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    score=0;earnedScore=0; lives=3; nextUpgradeLevel=2; blasterLevel=0;wallEaterLevel=0;wallEaterUntil=0; beamUntil=0;magnetUntil=0;purchaseSequence=0;pendingPurchases.length=0;
-    leaderboardNode.hidden=true;victoryNode.hidden=true;testingFinalBoss=false;testBossButton.textContent='Test final boss';testBossButton.title='Jump to the final boss (test run)';dialog.classList.remove('is-game-over');$('.eye-game-stage').classList.remove('is-game-over');scoreInput.value='';
+    score=0;earnedScore=0; lives=3; nextUpgradeLevel=2; blasterLevel=0;magnetLevel=0;wallEaterLevel=0;wallEaterUntil=0; beamUntil=0;magnetUntil=0;purchaseSequence=0;pendingPurchases.length=0;escape=null;
+    leaderboardNode.hidden=true;victoryNode.hidden=true;testingFinalBoss=false;testBossButton.hidden=false;testBossButton.textContent='Test final boss';testBossButton.title='Jump to the final boss (test run)';dialog.classList.remove('is-game-over');$('.eye-game-stage').classList.remove('is-game-over');scoreInput.value='';
     upgradePending=false;upgradeOpenedAt=0;magnetRemainingAtUpgrade=0;rageRemainingAtUpgrade=0;bonusRemainingAtUpgrade=0; upgradeNode.hidden=true; gameLayout.inert=false; beginLevel(1,0);
   }
   async function roomRequest(payload, keepalive=false) {
@@ -412,10 +453,14 @@ function createEyeGame(onClose) {
     bossRageWave=Number(data.bossRageWave)||0;
     data.eaten.forEach(cell=>dots.delete(cell));
     (data.removedWalls||[]).forEach(cell=>walls.delete(cell));
-    score=data.score-pendingPurchases.reduce((total,purchase)=>total+purchase.cost,0);
+    score=data.score;
     earnedScore=Number(data.earnedScore??data.score);
     const self=data.players.find(member=>member.self);
+    if((data.phase==='escape'||data.phase==='launch'||data.phase==='won') && !escape) startEscape(Date.now()-Math.max(0,Number(data.escapeElapsedMs)||0),false);
+    if(escape && data.phase==='launch') {phase='launch';escape.launchAt=Date.now()-Math.max(0,Number(data.launchElapsedMs)||0);}
+    if(escape && data.phase==='won' && phase!=='won') finishEscape();
     if (self?.blasterLevel!=null) blasterLevel=Number(self.blasterLevel)+pendingPurchases.filter(purchase=>purchase.type==='blaster').length;
+    if (self?.magnetLevel!=null) magnetLevel=Math.min(4,Number(self.magnetLevel)+pendingPurchases.filter(purchase=>purchase.type==='magnet').length);
     if (self?.bossBlaster!=null) bossBlaster=!!self.bossBlaster || pendingBlasterPickup;
     const wallEaterPending=pendingPurchases.some(purchase=>purchase.type==='wallEater');
     wallEaterLevel=self?.wallEaterLevel===level || wallEaterPending ? level : 0;
@@ -425,17 +470,18 @@ function createEyeGame(onClose) {
     const partner=data.players.find(member=>!member.self);
     if (partner) {
       remoteFrom=remotePlayer?{...remotePlayer}:{x:partner.x,y:partner.y};
-      remotePlayer={x:partner.x,y:partner.y}; remoteUpdatedAt=performance.now();
+      remotePlayer=escape?{x:partner.escapeX??partner.x,y:partner.escapeY??partner.y}:{x:partner.x,y:partner.y}; remoteUpdatedAt=performance.now();
       showRoomStatus('Playing together: you are the orange chomper.');
     } else { remotePlayer=remoteFrom=null; showRoomStatus('Playing solo for now. Another visitor can join.'); }
-    if(Number(data.bossStage)===2 && bossStage!==2 && phase==='boss' && boss) startFinalBossSecondPhase();
-    if (data.phase && data.phase!==phase) {
+    if(Number(data.bossStage)===3 && bossStage===1 && phase==='boss' && boss) startFinalBossSecondPhase();
+    if(Number(data.bossStage)===2 && bossStage!==2 && phase==='boss' && boss) beginBossRagePhase();
+    if (data.phase && data.phase!==phase && !escape) {
       if(data.phase==='boss' && phase==='dots') startBossPhase();
       phase=data.phase;
       if(phase==='key') {bossProjectiles=[];updateStatus('Mini-boss defeated! +500 points. Grab the key.');}
       if(phase==='door') updateStatus('The green door at the bottom is open.');
       if(phase==='won') {
-        if(Number(data.bossStage)===2) {bossStage=2;floorDamage=4;floorBreakX=Number(data.floorBreakX)||doorX();floorImpacts=Array.isArray(data.floorImpacts)?data.floorImpacts:floorImpacts;}
+        if(Number(data.bossStage)===2) {bossStage=2;floorDamage=Number(data.floorDamage)||0;floorBreakX=Number(data.floorBreakX)||doorX();floorImpacts=Array.isArray(data.floorImpacts)?data.floorImpacts:floorImpacts;}
         boss=null;bossProjectiles=[];dots.clear();removeInnerWalls();boardWrap.classList.add('is-final-boss');state='won';victoryNode.hidden=false;
         updateStatus('The floor gives way! The final boss falls into the lava. You reached the core.');
       }
@@ -445,11 +491,22 @@ function createEyeGame(onClose) {
       if(phase!=='boss' || level!==finalLevel) {ghosts=[];previousGhosts=[];}
       bossHp=Number(data.bossHp??bossHp);
       bossMaxHp=Number(data.bossMaxHp??bossMaxHp);
-      if(phase==='boss' && Number.isFinite(Number(data.bossElapsedMs))) bossStartedAt=Date.now()-Number(data.bossElapsedMs);
+      if(phase==='boss' && Number.isFinite(Number(data.bossElapsedMs))) {
+        bossStartedAt=Date.now()-Number(data.bossElapsedMs);
+        bossNextShotAt=Math.max(bossNextShotAt,bossStartedAt+bossSafetyMs);
+        invulnerableUntil=Math.max(invulnerableUntil,bossStartedAt+bossSafetyMs);
+      }
+      if(bossStage===3) {
+        bossTransitionStartedAt=Date.now()-Math.max(0,Number(data.bossTransitionElapsedMs)||0);
+        bossTransitionX=Number(data.bossTransitionX??bossTransitionX);
+        bossTransitionY=Number(data.bossTransitionY??bossTransitionY);
+      }
       if(bossStage===2) {
         bossStage2StartedAt=Date.now()-Math.max(0,Number(data.bossStage2ElapsedMs)||0);
         if(Number(data.floorDamage)>floorDamage) registerBossSlam(Number(data.floorDamage),Number(data.floorBreakX)||doorX());
         if(Array.isArray(data.floorImpacts)) floorImpacts=data.floorImpacts;
+        if(data.bossFalling && !bossFallStartedAt) updateStatus('The floor gives way! The boss is falling into the lava.');
+        bossFallStartedAt=data.bossFalling?Date.now()-Math.max(0,Number(data.bossFallElapsedMs)||0):0;
       }
       hasKey=!!data.hasKey;
       boss=data.boss || null;
@@ -466,7 +523,7 @@ function createEyeGame(onClose) {
     roomBusy=true; const active=room, eaten=[...pendingEaten], brokenWalls=[...pendingBrokenWalls], ghostKills=[...pendingGhostKills], purchases=pendingPurchases.slice(), restart=roomRestart, advance=roomAdvance, claimBonus=pendingBonusClaim, bossHits=pendingBossHits.slice(), pickupBlaster=pendingBlasterPickup, claimKey=pendingKeyClaim;
     pendingEaten.clear(); pendingBrokenWalls.clear(); pendingGhostKills.clear(); pendingBossHits=[];pendingBlasterPickup=false;pendingKeyClaim=false;roomRestart=false; roomAdvance=false; pendingBonusClaim=null;
     try {
-      const data=await roomRequest({action:'sync',room:active.id,token:active.token,generation:active.generation,x:player.x,y:player.y,eaten,brokenWalls,ghostKills,purchases,restart,advance,claimBonus,bossHits,pickupBlaster,claimKey});
+      const data=await roomRequest({action:'sync',room:active.id,token:active.token,generation:active.generation,x:player.x,y:player.y,escapeX:escape?player.x:null,escapeY:escape?player.y:null,escapeWin:phase==='launch',eaten,brokenWalls,ghostKills,purchases,restart,advance,claimBonus,bossHits,pickupBlaster,claimKey});
       if (room!==active) return;
       for (const purchase of purchases) {
         const index=pendingPurchases.findIndex(item=>item.id===purchase.id);
@@ -477,10 +534,10 @@ function createEyeGame(onClose) {
           if (purchase.type==='life') lives=Math.max(0,lives-1);
           else if (purchase.type==='blaster') blasterLevel=Math.max(0,blasterLevel-1);
           else if (purchase.type==='pause') ghostPausedUntil=purchase.previousUntil||0;
-          else if (purchase.type==='magnet') magnetUntil=purchase.previousUntil||0;
+          else if (purchase.type==='magnet') {magnetLevel=Math.max(0,magnetLevel-1);magnetUntil=purchase.previousUntil||0;}
           else if (purchase.type==='wallEater') {wallEaterLevel=0;wallEaterUntil=0;pendingBrokenWalls.clear();makeWalls();}
           updateGhostCooldown();updateMagnetTimer();
-          updateStatus('That upgrade could not be purchased. Your points have been returned.');
+          updateStatus('That upgrade was unavailable. Choose another on your next XP level.');
         }
       }
       networkFailures=0; applyRoomState(data);
@@ -528,15 +585,18 @@ function createEyeGame(onClose) {
     pool.forEach((button,index)=>{button.style.order=String(index);button.dataset.displaySlot=index<3?String(index+1):'';});
     const shown=new Set(pool.slice(0,3));
     buttons.forEach(button=>{
-      const type=button.dataset.upgrade,cost=upgradeCost(type);
+      const type=button.dataset.upgrade;
       button.hidden=!shown.has(button);
-      button.disabled=score<cost || !Number.isFinite(cost);
-      button.querySelector('.eye-game-upgrade-cost').textContent=cost.toLocaleString('en-US');
+      button.disabled=false;
       const action=button.querySelector('.eye-game-upgrade-action');
-      action.textContent=button.disabled?`Need ${(cost-score).toLocaleString('en-US')} more points`:'Choose upgrade';
+      action.textContent='Choose upgrade';
       if (type==='blaster') {
         button.querySelector('.eye-game-upgrade-name').textContent=`Blaster level ${blasterLevel+1}`;
         button.querySelector('.eye-game-upgrade-description').textContent=`${blasterLevel+1} damage per shot. Press Space to fire.`;
+      } else if (type==='magnet') {
+        const nextLevel=Math.min(4,magnetLevel+1),duration=magnetDuration(nextLevel);
+        button.querySelector('.eye-game-upgrade-name').textContent=magnetLevel===4?'Recharge dot magnet':'Dot magnet level '+nextLevel;
+        button.querySelector('.eye-game-upgrade-description').textContent=`Pull dots within ${nextLevel} ${nextLevel===1?'tile':'tiles'} for ${duration} seconds.`;
       }
     });
   }
@@ -551,11 +611,10 @@ function createEyeGame(onClose) {
     button.focus({preventScroll:true});
   }
   function checkUpgrade() {
-    if (state!=='playing' || xpProgress(earnedScore).level<nextUpgradeLevel || (multiplier>1 && Date.now()<multiplierUntil)) return;
+    if (state!=='playing' || xpProgress(earnedScore).level<nextUpgradeLevel) return;
     const reachedLevel=nextUpgradeLevel++;
     upgradePending=true; upgradeOpenedAt=Date.now();magnetRemainingAtUpgrade=Math.max(0,magnetUntil-upgradeOpenedAt);wallEaterRemainingAtUpgrade=Math.max(0,wallEaterUntil-upgradeOpenedAt);rageRemainingAtUpgrade=Math.max(0,rageUntil-upgradeOpenedAt);bonusRemainingAtUpgrade=bonus?Math.max(0,bonus.expiresAt-upgradeOpenedAt):0;state='upgrade'; upgradeNode.hidden=false; gameLayout.inert=true;
     upgradeNode.querySelector('#eye-game-upgrade-title').textContent=`XP level ${reachedLevel}! Choose an upgrade`;
-    upgradeNode.querySelector('#eye-game-upgrade-balance').textContent=score.toLocaleString('en-US');
     refreshUpgradeChoices();
     selectUpgradeButton(availableUpgradeButtons()[0]);
   }
@@ -571,18 +630,16 @@ function createEyeGame(onClose) {
     upgradePending=false; upgradeNode.hidden=true; gameLayout.inert=false; state='playing';
     if (!dots.size && phase==='dots' && !room) startBossPhase();
     checkUpgrade();
-    canvas.focus?.({preventScroll:true});
+    if (state==='playing') canvas.focus?.({preventScroll:true});
   }
   function chooseUpgrade(type) {
     if (state!=='upgrade') return;
-    const cost=upgradeCost(type);
-    if (score<cost || !Number.isFinite(cost)) return;
-    score-=cost;
-    if (room) pendingPurchases.push({id:String(++purchaseSequence),type,cost,previousUntil:type==='magnet'?magnetUntil:type==='pause'?ghostPausedUntil:0});
-    if (type==='life') { lives++; updateStatus(`Extra life purchased for ${cost} points.`); }
-    if (type==='pause') { ghostPausedUntil=Date.now()+5000;updateGhostCooldown(); updateStatus(`Ghost freeze purchased for ${cost} points: five seconds of peace!`); }
-    if (type==='blaster') { blasterLevel++; updateStatus(`Blaster level ${blasterLevel} purchased for ${cost} points.`); }
-    if (type==='magnet') { magnetUntil=Date.now()+8000;updateMagnetTimer();updateStatus('Dot magnet active: pull in dots for eight seconds!'); }
+    if (!['life','pause','blaster','magnet','wallEater'].includes(type) || type==='blaster' && blasterLevel>=5 || type==='wallEater' && wallEaterLevel===level) return;
+    if (room) pendingPurchases.push({id:String(++purchaseSequence),type,previousUntil:type==='magnet'?magnetUntil:type==='pause'?ghostPausedUntil:0});
+    if (type==='life') { lives++; updateStatus('Extra life unlocked!'); }
+    if (type==='pause') { ghostPausedUntil=Date.now()+5000;updateGhostCooldown(); updateStatus('Ghost freeze unlocked: five seconds of peace!'); }
+    if (type==='blaster') { blasterLevel++; updateStatus(`Blaster level ${blasterLevel} unlocked!`); }
+    if (type==='magnet') { magnetLevel=Math.min(4,magnetLevel+1);const duration=magnetDuration(magnetLevel);magnetUntil=Date.now()+duration*1000;updateMagnetTimer();updateStatus(`Dot magnet level ${magnetLevel}: pull in dots for ${duration} seconds!`); }
     if (type==='wallEater') { wallEaterLevel=level;wallEaterUntil=Date.now()+20000;updateStatus('Wall chomper active: bite through walls and ghosts for 20 seconds!'); }
     finishUpgradeChoice(type);
     if (room) void syncRoom();
@@ -598,7 +655,7 @@ function createEyeGame(onClose) {
     lives--;state='hit';hitAt=performance.now();hitPosition={...player};
     bossProjectiles=[];
     boardWrap.classList.remove('is-hit');void boardWrap.offsetWidth;boardWrap.classList.add('is-hit');
-    updateStatus(lives?'Ouch! You still have another chance.':phase==='boss'?`${level===finalLevel?'The final boss':'The mini-boss'} won. Try again?`:'The ghosts won. Try again?');
+    updateStatus(lives?phase==='escape'?'The heat caught you. Get moving!':'Ouch! You still have another chance.':phase==='escape'?'The lava caught you. Try again?':phase==='boss'?`${level===finalLevel?'The final boss':'The mini-boss'} won. Try again?`:'The ghosts won. Try again?');
     clearTimeout(hitTimer);
     hitTimer=setTimeout(()=>{
       boardWrap.classList.remove('is-hit');hitAt=0;
@@ -606,10 +663,15 @@ function createEyeGame(onClose) {
         state='lost';leaderboardNode.hidden=false;dialog.classList.add('is-game-over');$('.eye-game-stage').classList.add('is-game-over');renderLeaderboard();
         $('.eye-game-restart').focus({preventScroll:true});return;
       }
-      player=previousPlayer={x:1,y:room?.slot===2?rows-2:1};
+      if(escape) {
+        const y=Math.max(3,Math.min(escapeHeight-5,Math.floor(escape.lavaY)-6));
+        let x=doorX();while(escape.obstacles.has(key(x,y)) && x<cols-2) x++;
+        player=previousPlayer={x,y};escape.lavaY=Math.max(escape.lavaY,y+9);wanted=moving=directions[3];
+      }
+      else player=previousPlayer={x:1,y:room?.slot===2?rows-2:1};
       ghosts.forEach(g=>{if(g.minion && g.dead) return;g.x=g.spawn.x;g.y=g.spawn.y;g.hp=g.maxHp;g.dead=false;g.respawnAt=0;g.spawnedAt=0;});
-      previousGhosts=ghosts.map(g=>({...g}));wanted=moving=directions[0];
-      invulnerableUntil=Date.now()+1400;state='playing';
+      previousGhosts=ghosts.map(g=>({...g}));if(!escape) wanted=moving=directions[0];
+      invulnerableUntil=Date.now()+1400;state='playing';checkUpgrade();
     },650);
   }
   function stepSimulatedPlayer() {
@@ -634,7 +696,7 @@ function createEyeGame(onClose) {
     for(let i=0;i<queue.length;i++) {
       const current=queue[i],cell=key(current.x,current.y);
       if (dots.delete(cell)) {pendingEaten.add(cell);collected++;}
-      if (current.depth===2) continue;
+      if (current.depth===magnetLevel) continue;
       for(const direction of directions) {
         const x=current.x+direction.x,y=current.y+direction.y,next=key(x,y);
         if (!passable(x,y)||seen.has(next)) continue;
@@ -672,6 +734,17 @@ function createEyeGame(onClose) {
   function shoot() {
     if (!canShoot() || state!=='playing') return;
     let x=player.x,y=player.y; beamEnd={x,y};
+    if(escape) {
+      for(let distance=0;distance<20;distance++) {
+        const nextX=x+moving.x,nextY=y+moving.y;
+        if(nextX<=0 || nextX>=cols-1 || nextY<=0 || nextY>=escapeHeight-1 || escape.obstacles.has(key(nextX,nextY))) break;
+        x=nextX;y=nextY;beamEnd={x,y};
+        const ghost=escape.ghosts.find(g=>!g.dead && g.y===y && Math.abs(g.x-x)<.85);
+        if(ghost) {ghost.dead=true;escape.shards.push({x:ghost.x,y:ghost.y,start:performance.now()});break;}
+      }
+      beamUntil=performance.now()+150;
+      return;
+    }
     while (passable(x+moving.x,y+moving.y)) {
       const fromX=x,fromY=y;
       x+=moving.x;y+=moving.y;beamEnd={x,y};
@@ -717,6 +790,9 @@ function createEyeGame(onClose) {
     }
     beamUntil=performance.now()+150;
   }
+  const floorHitsAt = x => floorImpacts.reduce((hits,impact)=>hits+(Math.abs(x-impact.x)<=2?1:0),0);
+  const floorOpenAt = x => floorHitsAt(x)>=3;
+  const bossOverOpenFloor = x => [x-2,x-1,x,x+1,x+2].every(floorOpenAt);
   function registerBossSlam(number,x) {
     if(number<=floorDamage) return;
     floorDamage=number;floorBreakX=Math.max(3,Math.min(cols-4,Math.round(x)));
@@ -724,24 +800,23 @@ function createEyeGame(onClose) {
     boardWrap.classList.remove('is-slam');void boardWrap.offsetWidth;boardWrap.classList.add('is-slam');
     setTimeout(()=>boardWrap.classList.remove('is-slam'),420);
     for(let offset=-2;offset<=2;offset++) wallBreaks.push({x:floorBreakX+offset,y:rows-1,start:performance.now()});
-    floaters.push({x:floorBreakX,y:rows-3,text:number>=4?'FLOOR BREAKS!':'CRACK!',color:'#ffbf75',subtle:false,start:performance.now()});
-    updateStatus(number>=4?'The floor gives way! The boss is falling into the lava.':`Slam ${number}/4! The floor is breaking. Keep moving!`);
+    const falling=!room && bossOverOpenFloor(floorBreakX);
+    if(falling) bossFallStartedAt=Date.now();
+    floaters.push({x:floorBreakX,y:rows-3,text:falling?'FLOOR BREAKS!':'CRACK!',color:'#ffbf75',subtle:false,start:performance.now()});
+    updateStatus(falling?'The floor gives way! The boss is falling into the lava.':'The floor cracks. Lure the boss onto the same spot again!');
     if(player.y>=rows-5 && Math.abs(player.x-floorBreakX)<=2) loseLife(true);
   }
   function bossStage2Y(elapsed) {
-    const cycle=Math.min(3,Math.floor(elapsed/3600)),within=elapsed-cycle*3600;
-    if(cycle===0 && within<650) {
-      const entryY=Math.max(3,Math.floor(rows/2)-2),t=Math.max(0,within)/650;
-      return entryY+(2-entryY)*(1-(1-t)**3);
-    }
+    if(bossFallStartedAt) return rows-2+5*Math.min(1,(Date.now()-bossFallStartedAt)/1400);
+    const within=elapsed%3600;
     if(within<1600) return 2;
     if(within<2200) return 2+(rows-4)*(within-1600)/600;
-    return cycle===3?rows-2+5*Math.min(1,(within-2200)/1400):rows-2-(rows-4)*Math.min(1,(within-2200)/1400);
+    return rows-2-(rows-4)*Math.min(1,(within-2200)/1400);
   }
   function stepFinalBossSecondPhase() {
     if(!finalBossActive() || bossStage!==2 || room) return;
+    if(bossFallStartedAt) {if(Date.now()-bossFallStartedAt>=1400) startEscape();return;}
     const elapsed=Date.now()-bossStage2StartedAt,cycle=Math.floor(elapsed/3600),within=elapsed%3600;
-    if(cycle>=4) {finishFinalBoss();return;}
     if(within<1600) {
       if(tick%2===0) boss.x=Math.max(3,Math.min(cols-4,boss.x+Math.sign(player.x-boss.x)));
     } else if(within>=2200) {
@@ -749,8 +824,48 @@ function createEyeGame(onClose) {
     }
     boss.y=bossStage2Y(elapsed);
   }
+  function stepEscape() {
+    if(!escape) return;
+    const now=Date.now(),age=now-escape.startedAt;
+    if(phase==='launch') {if(!room && now-escape.launchAt>=2200) finishEscape();return;}
+    if(age<2400 || !hasInput) return;
+    if(!escape.runAt) {escape.runAt=now;escape.lastShotAt=now;updateStatus('Climb through all five levels. Reach the rocket before the lava!');}
+    escape.previousLavaY=escape.lavaY;
+    escape.lavaY=Math.max(3,Math.min(escape.lavaY-.42,player.y+10));
+    previousPlayer={...player};tick++;
+    const clear=(x,y)=>x>0 && x<cols-1 && y>0 && y<escapeHeight-1 && !escape.obstacles.has(key(x,y));
+    if(clear(player.x+wanted.x,player.y+wanted.y)) moving=wanted;
+    if(clear(player.x+moving.x,player.y+moving.y)) {player.x+=moving.x;player.y+=moving.y;}
+    const stratum=Math.max(1,Math.min(finalLevel,Math.floor(player.y/escapeLayerHeight)+1));
+    if(stratum!==escape.lastStratum) {escape.lastStratum=stratum;renderProgress();updateStatus(`Level ${stratum}. Keep climbing — the lava is still rising!`);}
+    if(player.y<=3 && Math.abs(player.x-doorX())<=2) {
+      phase='launch';escape.launchAt=now;updateStatus('Rocket boarded! Leaving the collapsing surface behind.');
+      if(room) void syncRoom();return;
+    }
+    if(now-escape.lastShotAt>1450) {
+      const offset=[5,-5,7,-7][escape.shotCount++%4];
+      escape.shots.push({x:Math.max(2,Math.min(cols-3,player.x+offset)),y:escape.lavaY-2,previousY:escape.lavaY-2});escape.lastShotAt=now;
+    }
+    for(let i=escape.shots.length-1;i>=0;i--) {
+      const shot=escape.shots[i];shot.previousY=shot.y;shot.y-=.9;
+      const cell=key(shot.x,Math.round(shot.y));
+      if(escape.obstacles.delete(cell)) {escape.shards.push({x:shot.x,y:Math.round(shot.y),start:performance.now()});escape.shots.splice(i,1);continue;}
+      if(Math.abs(shot.x-player.x)<.8 && Math.abs(shot.y-player.y)<.9) {escape.shots.splice(i,1);loseLife(true);break;}
+      if(shot.y<0) {escape.shards.push({x:shot.x,y:0,start:performance.now()});escape.shots.splice(i,1);}
+    }
+    if(now>=ghostPausedUntil) for(const ghost of escape.ghosts) {
+      if(ghost.dead) continue;
+      ghost.previousX=ghost.x;
+      ghost.x=Math.max(2,Math.min(cols-3,ghost.homeX+Math.sin(now/1050+ghost.phase)*3.2));
+      if(Math.abs(ghost.x-player.x)<.8 && Math.abs(ghost.y-player.y)<.8) {
+        if(wallEaterActive()) {ghost.dead=true;escape.shards.push({x:ghost.x,y:ghost.y,start:performance.now()});}
+        else {loseLife(true);break;}
+      }
+    }
+    if(player.y+.6>=escape.lavaY) loseLife(true);
+  }
   function stepBossProjectiles() {
-    if(phase!=='boss' || !boss || bossStage===2) return;
+    if(phase!=='boss' || !boss || bossStage!==1) return;
     const now=Date.now();
     if(now>=bossNextShotAt) {
       const dx=player.x-boss.x,dy=player.y-boss.y,length=Math.hypot(dx,dy)||1;
@@ -774,6 +889,7 @@ function createEyeGame(onClose) {
   }
   function step() {
     if (!dialog.open || document.hidden || state!=='playing') return;
+    if(phase==='escape'||phase==='launch') {stepEscape();return;}
     maybeStartRage();
     syncBossMinions();
     if (!room) spawnLocalBonus();
@@ -785,7 +901,9 @@ function createEyeGame(onClose) {
       if(next<4 || next>cols-5) boss.dx*=-1;
       boss.x+=boss.dx;
     }
+    if(bossStage===3 && !room && Date.now()-bossTransitionStartedAt>=bossTransitionMs) beginBossRagePhase(bossTransitionStartedAt+bossTransitionMs);
     stepFinalBossSecondPhase();
+    if(escape) return;
     if(state!=='playing') return;
     stepBossProjectiles();
     if(state!=='playing') return;
@@ -846,8 +964,120 @@ function createEyeGame(onClose) {
     }
   }
   function roundedRect(x,y,w,h,r) {ctx.beginPath();if (ctx.roundRect) ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h);ctx.fill();}
+  function drawBossBody(finalArena,eyesClosed=false) {
+    ctx.fillStyle=finalArena?'#ba302c':'#703ac5';ctx.beginPath();ctx.arc(0,-4,21,Math.PI,0);ctx.lineTo(21,16);ctx.lineTo(12,11);ctx.lineTo(5,18);ctx.lineTo(-2,11);ctx.lineTo(-10,18);ctx.lineTo(-16,10);ctx.lineTo(-21,16);ctx.closePath();ctx.fill();
+    ctx.shadowBlur=0;ctx.strokeStyle=finalArena?'#ffb978':'#e7c7ff';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=finalArena?'#ff913f':'#b586f2';ctx.beginPath();ctx.moveTo(-17,-17);ctx.lineTo(-20,-27);ctx.lineTo(-7,-21);ctx.moveTo(17,-17);ctx.lineTo(20,-27);ctx.lineTo(7,-21);ctx.fill();
+    if(eyesClosed) {
+      ctx.strokeStyle='#2e135f';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-13,-5);ctx.quadraticCurveTo(-8,-1,-3,-5);ctx.moveTo(3,-5);ctx.quadraticCurveTo(8,-1,13,-5);ctx.stroke();
+    } else {
+      ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(-8,-5,5,6,0,0,Math.PI*2);ctx.ellipse(8,-5,5,6,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(-6,-4,2.5,0,Math.PI*2);ctx.arc(6,-4,2.5,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#2e135f';ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-15,-12);ctx.lineTo(-4,-9);ctx.moveTo(15,-12);ctx.lineTo(4,-9);ctx.stroke();
+    }
+    ctx.fillStyle=finalArena?'#5c1121':'#341568';roundedRect(-7,7,14,5,3);
+  }
+  function drawEscape(progress=1) {
+    const width=cols*size,height=rows*size,now=performance.now(),age=Date.now()-escape.startedAt;
+    const playerY=previousPlayer.y+(player.y-previousPlayer.y)*progress;
+    const target=Math.max(0,Math.min(escapeHeight-rows,playerY-rows*.53));
+    const frameMs=Math.min(50,Math.max(0,now-(escape.lastDrawAt||now)));
+    escape.lastDrawAt=now;
+    escape.cameraY+=(target-escape.cameraY)*(1-Math.exp(-frameMs/145));
+    const screenY=y=>(y-escape.cameraY)*size;
+    ctx.clearRect(0,0,width,height);
+    const colors=[['#071845','#172d6f'],['#101b50','#243574'],['#1d174c','#44306e'],['#381737','#713041'],['#4b1429','#9c332b']];
+    for(let band=0;band<5;band++) {
+      const top=screenY(band*escapeLayerHeight),bottom=screenY((band+1)*escapeLayerHeight);
+      if(bottom<0||top>height) continue;
+      const gradient=ctx.createLinearGradient(0,top,0,bottom);gradient.addColorStop(0,colors[band][0]);gradient.addColorStop(1,colors[band][1]);
+      ctx.fillStyle=gradient;ctx.fillRect(0,top,width,bottom-top+1);
+      ctx.fillStyle='rgba(184,233,255,.15)';ctx.font='800 15px Arial, sans-serif';ctx.textAlign='left';
+      ctx.fillText(`0${band+1}  ${['THE SURFACE','SHADOW ZONE','THE RIFT','SEA OF FIRE','THE CORE'][band]}`,size,top+30);
+      ctx.strokeStyle='rgba(184,233,255,.14)';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,top);ctx.lineTo(width,top);ctx.stroke();
+    }
+    for(let side=0;side<2;side++) {
+      ctx.fillStyle='#172966';ctx.fillRect(side?width-size:0,0,size,height);
+      ctx.fillStyle='rgba(184,233,255,.12)';
+      for(let y=Math.floor(escape.cameraY);y<escape.cameraY+rows+1;y+=2) {
+        const py=screenY(y),reach=7+5*Math.sin(y*1.8);
+        ctx.beginPath();ctx.arc(side?width-size+reach:size-reach,py,2.1,0,Math.PI*2);ctx.fill();
+      }
+    }
+    escape.obstacles.forEach(cell=>{
+      const [x,y]=cell.split(',').map(Number),py=screenY(y);
+      if(py<-size||py>height) return;
+      ctx.fillStyle=y%escapeLayerHeight===0?'#46639b':'#3d527e';roundedRect(x*size+1,py+1,size-2,size-2,5);
+      ctx.fillStyle='rgba(184,233,255,.15)';ctx.fillRect(x*size+5,py+5,size-10,2);
+    });
+    const rocketX=doorX()*size+size/2;
+    if(escape.cameraY<7) {
+      const lift=phase==='launch'?Math.min(1,(Date.now()-escape.launchAt)/2100):0;
+      const ry=screenY(2)-lift*height*.95;
+      ctx.save();ctx.translate(rocketX,ry);ctx.shadowColor='#b8e9ff';ctx.shadowBlur=20;
+      ctx.fillStyle='#eef8ff';ctx.beginPath();ctx.moveTo(0,-35);ctx.quadraticCurveTo(25,-16,19,20);ctx.lineTo(-19,20);ctx.quadraticCurveTo(-25,-16,0,-35);ctx.fill();
+      ctx.fillStyle='#3357e8';ctx.beginPath();ctx.arc(0,-6,8,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#f86b00';ctx.beginPath();ctx.moveTo(-19,9);ctx.lineTo(-31,25);ctx.lineTo(-17,22);ctx.moveTo(19,9);ctx.lineTo(31,25);ctx.lineTo(17,22);ctx.fill();
+      ctx.fillStyle='#ffad4d';ctx.beginPath();ctx.moveTo(-8,22);ctx.lineTo(0,22+18+Math.sin(now/90)*8+lift*38);ctx.lineTo(8,22);ctx.fill();ctx.restore();
+    }
+    const lavaY=escape.previousLavaY+(escape.lavaY-escape.previousLavaY)*progress;
+    const lavaTop=screenY(lavaY)+Math.sin(now/200)*3;
+    const lava=ctx.createLinearGradient(0,lavaTop,0,height);lava.addColorStop(0,'#ffbd47');lava.addColorStop(.16,'#f36425');lava.addColorStop(1,'#8b1f28');
+    ctx.fillStyle=lava;ctx.fillRect(0,lavaTop,width,height-lavaTop);
+    const bossRise=Math.min(1,Math.max(0,(age-800)/2300));
+    if(bossRise>0) {
+      const bossScale=(10.5+Math.min(2,age/14000))*bossRise;
+      const by=lavaTop+155-265*bossRise+Math.sin(now/270)*4;
+      ctx.save();ctx.beginPath();ctx.rect(0,0,width,Math.max(0,lavaTop+12));ctx.clip();
+      ctx.globalAlpha=bossRise;ctx.translate(width/2,by);ctx.scale(bossScale,bossScale);ctx.shadowColor='#ff5d32';ctx.shadowBlur=34;
+      drawBossBody(true);
+      ctx.restore();
+    }
+    ctx.fillStyle='#ffdc75';for(let i=0;i<19;i++) {
+      const bx=(i*103+47)%width,by=lavaTop+6+Math.sin(now/370+i*2)*8;
+      ctx.beginPath();ctx.arc(bx,by,2+(i%4),0,Math.PI*2);ctx.fill();
+    }
+    escape.shots.forEach(shot=>{
+      const sy=screenY(shot.previousY+(shot.y-shot.previousY)*progress);ctx.save();ctx.shadowColor='#ff7b35';ctx.shadowBlur=22;
+      ctx.fillStyle='#ffbd64';ctx.beginPath();ctx.arc(shot.x*size+size/2,sy,8,0,Math.PI*2);ctx.fill();ctx.restore();
+    });
+    if(Date.now()>=ghostPausedUntil) escape.ghosts.forEach(ghost=>{
+      if(ghost.dead) return;
+      const gy=screenY(ghost.y)+size/2;
+      if(gy<-size || gy>Math.min(height+size,lavaTop-7)) return;
+      const gx=(ghost.previousX+(ghost.x-ghost.previousX)*progress)*size+size/2;
+      ctx.save();ctx.translate(gx,gy);ctx.shadowColor=ghost.color;ctx.shadowBlur=12;
+      ctx.fillStyle=ghost.color;ctx.beginPath();ctx.arc(0,-2,11,Math.PI,0);ctx.lineTo(11,10);ctx.lineTo(6,6);ctx.lineTo(0,10);ctx.lineTo(-6,6);ctx.lineTo(-11,10);ctx.closePath();ctx.fill();
+      ctx.shadowBlur=0;ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(-3,-2,1.8,0,Math.PI*2);ctx.arc(3,-2,1.8,0,Math.PI*2);ctx.fill();ctx.restore();
+    });
+    for(let i=escape.shards.length-1;i>=0;i--) {
+      const shard=escape.shards[i],t=(now-shard.start)/560;
+      if(t>=1) {escape.shards.splice(i,1);continue;}
+      const sx=shard.x*size+size/2,sy=screenY(shard.y)+size/2;
+      ctx.save();ctx.globalAlpha=1-t;ctx.strokeStyle='#ffcb8d';ctx.lineWidth=2*(1-t)+.5;
+      ctx.beginPath();ctx.arc(sx,sy,6+19*t,0,Math.PI*2);ctx.stroke();
+      for(let n=0;n<8;n++) {const angle=n*Math.PI/4;ctx.fillStyle=n%2?'#b8e9ff':'#ffb46e';ctx.fillRect(sx+Math.cos(angle)*(8+20*t),sy+Math.sin(angle)*(8+20*t)+8*t*t,4*(1-t)+1,4*(1-t)+1);}
+      ctx.restore();
+    }
+    if(room && remotePlayer) {
+      const rx=remotePlayer.x*size+size/2,ry=screenY(remotePlayer.y)+size/2;
+      if(ry>-size && ry<height+size) {ctx.fillStyle='#b8e9ff';ctx.beginPath();ctx.arc(rx,ry,11,0,Math.PI*2);ctx.fill();ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(rx+10,ry,7.5,0,Math.PI*2);ctx.fill();}
+    }
+    const px=(previousPlayer.x+(player.x-previousPlayer.x)*progress)*size+size/2;
+    const py=screenY(previousPlayer.y+(player.y-previousPlayer.y)*progress)+size/2;
+    if(beamEnd && now<beamUntil) {
+      ctx.save();ctx.strokeStyle='#b8e9ff';ctx.lineWidth=4;ctx.lineCap='round';ctx.shadowColor='#b8e9ff';ctx.shadowBlur=12;
+      ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(beamEnd.x*size+size/2,screenY(beamEnd.y)+size/2);ctx.stroke();ctx.restore();
+    }
+    if(phase!=='launch' && !escape.completed) {
+      ctx.save();if(Date.now()<invulnerableUntil) ctx.globalAlpha=.55+.45*Math.sin(now/85)**2;
+      ctx.fillStyle='#F86B00';ctx.beginPath();ctx.arc(px,py,12,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(px+Math.cos(moving.angle)*11,py+Math.sin(moving.angle)*11,8,0,Math.PI*2);ctx.fill();ctx.restore();
+    }
+  }
   function draw(progress=1) {
     if (!walls) return;
+    if(escape) {drawEscape(progress);return;}
     const finalArena=level===finalLevel && (phase==='boss'||phase==='won'),secondArena=finalArena && bossStage===2,width=cols*size,height=rows*size;
     ctx.clearRect(0,0,width,height);
     if(finalArena) {
@@ -885,12 +1115,20 @@ function createEyeGame(onClose) {
     }
     walls.forEach(cell=>{
       const [x,y]=cell.split(',').map(Number),floorTile=secondArena && y===rows-1;
-      if(floorTile && floorImpacts.some(impact=>impact.level>=2 && Math.abs(x-impact.x)<=(impact.level===2?0:impact.level===3?1:3))) return;
-      ctx.fillStyle=floorTile?'#34426f':'#284ba7';roundedRect(x*size+2,y*size+2,size-4,size-4,6);
-      if(floorTile && floorImpacts.some(impact=>Math.abs(x-impact.x)<=impact.level+2)) {
-        ctx.strokeStyle='#ffad6b';ctx.lineWidth=1.5+floorDamage*.35;ctx.beginPath();
-        ctx.moveTo(x*size+5,y*size+5);ctx.lineTo(x*size+14,y*size+12);ctx.lineTo(x*size+10,y*size+size-4);
-        ctx.moveTo(x*size+14,y*size+12);ctx.lineTo(x*size+size-4,y*size+7);ctx.stroke();
+      const floorHits=floorTile?floorHitsAt(x):0;
+      if(floorTile && floorHits>=3) return;
+      ctx.fillStyle=floorTile?(floorHits===2?'#51415e':'#34426f'):'#284ba7';roundedRect(x*size+2,y*size+2,size-4,size-4,6);
+      if(floorHits===1) {
+        ctx.strokeStyle='#f6a974';ctx.lineWidth=1.5;ctx.lineCap='round';ctx.beginPath();
+        ctx.moveTo(x*size+7,y*size+5);ctx.lineTo(x*size+14,y*size+12);ctx.lineTo(x*size+11,y*size+22);
+        ctx.moveTo(x*size+14,y*size+12);ctx.lineTo(x*size+22,y*size+8);ctx.stroke();
+      } else if(floorHits===2) {
+        ctx.fillStyle='#e66b35';ctx.beginPath();ctx.moveTo(x*size+2,y*size+2);ctx.lineTo(x*size+10,y*size+2);ctx.lineTo(x*size+4,y*size+10);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#f08b47';ctx.beginPath();ctx.moveTo(x*size+size-2,y*size+size-3);ctx.lineTo(x*size+size-11,y*size+size-2);ctx.lineTo(x*size+size-3,y*size+size-12);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='#ffc18a';ctx.lineWidth=2.8;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+        ctx.moveTo(x*size+5,y*size+5);ctx.lineTo(x*size+13,y*size+11);ctx.lineTo(x*size+9,y*size+size-5);
+        ctx.moveTo(x*size+13,y*size+11);ctx.lineTo(x*size+size-5,y*size+6);
+        ctx.moveTo(x*size+13,y*size+11);ctx.lineTo(x*size+size-6,y*size+size-5);ctx.stroke();
       }
     });
     if(phase!=='dots' && !secondArena) {
@@ -915,13 +1153,19 @@ function createEyeGame(onClose) {
     }
     if(phase==='boss' && boss) {
       if(secondArena) bossVisualX=bossVisualX===null?boss.x:bossVisualX+(boss.x-bossVisualX)*.19;
-      const bx=(secondArena?bossVisualX:boss.x)*size+size/2,by=(secondArena?bossStage2Y(Date.now()-bossStage2StartedAt):boss.y)*size+size/2;
+      const transitionElapsed=bossStage===3?Math.max(0,Math.min(bossTransitionMs,Date.now()-bossTransitionStartedAt)):0;
+      const rising=Math.max(0,Math.min(1,(transitionElapsed-1850)/1350));
+      const riseEase=rising*rising*(3-2*rising);
+      const transitionY=bossTransitionY+(2-bossTransitionY)*riseEase+(1-riseEase)*Math.sin(Math.min(1,transitionElapsed/620)*Math.PI)*.45;
+      const entryProgress=bossStage===1?Math.max(0,Math.min(1,(Date.now()-bossStartedAt)/bossEntryMs)):1;
+      const entryEase=1-(1-entryProgress)**3;
+      const bx=(bossStage===3?bossTransitionX:secondArena?bossVisualX:boss.x)*size+size/2,by=(bossStage===3?transitionY:secondArena?bossStage2Y(Date.now()-bossStage2StartedAt):-2+(boss.y+2)*entryEase)*size+size/2;
       const rageTarget=finalArena && bossStage===1 && raging?1:0;
       bossRageVisual+=(rageTarget-bossRageVisual)*.18;
       if(Math.abs(rageTarget-bossRageVisual)<.005) bossRageVisual=rageTarget;
       if(secondArena) {
         const within=(Date.now()-bossStage2StartedAt)%3600;
-        if(within>=1100 && within<2200) {
+        if(!bossFallStartedAt && within>=1100 && within<2200) {
           const warning=Math.min(1,(within-1100)/350);
           ctx.save();ctx.globalAlpha=(.1+.15*Math.sin(performance.now()/90)**2)*warning;ctx.fillStyle='#ff9151';
           roundedRect(bx-size*1.3,size*2,size*2.6,(rows-4)*size,18);ctx.restore();
@@ -931,14 +1175,16 @@ function createEyeGame(onClose) {
         ctx.save();ctx.strokeStyle='rgba(255,119,56,.6)';ctx.lineWidth=4;ctx.shadowColor='#ff462f';ctx.shadowBlur=24;
         ctx.beginPath();ctx.arc(bx,by,48+24*bossRageVisual+Math.sin(performance.now()/110)*3,0,Math.PI*2);ctx.stroke();ctx.restore();
       }
-      ctx.save();ctx.translate(bx,by+Math.sin(performance.now()/230)*2);if(finalArena) {const scale=bossStage===2?2.2:1.7*(1+.5*bossRageVisual);ctx.scale(scale,scale);}ctx.shadowColor=finalArena?'#ff5d32':'#b060ff';ctx.shadowBlur=finalArena?30:24;
-      ctx.fillStyle=finalArena?'#ba302c':'#703ac5';ctx.beginPath();ctx.arc(0,-4,21,Math.PI,0);ctx.lineTo(21,16);ctx.lineTo(12,11);ctx.lineTo(5,18);ctx.lineTo(-2,11);ctx.lineTo(-10,18);ctx.lineTo(-16,10);ctx.lineTo(-21,16);ctx.closePath();ctx.fill();
-      ctx.shadowBlur=0;ctx.strokeStyle=finalArena?'#ffb978':'#e7c7ff';ctx.lineWidth=2;ctx.stroke();
-      ctx.fillStyle=finalArena?'#ff913f':'#b586f2';ctx.beginPath();ctx.moveTo(-17,-17);ctx.lineTo(-20,-27);ctx.lineTo(-7,-21);ctx.moveTo(17,-17);ctx.lineTo(20,-27);ctx.lineTo(7,-21);ctx.fill();
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(-8,-5,5,6,0,0,Math.PI*2);ctx.ellipse(8,-5,5,6,0,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(-6,-4,2.5,0,Math.PI*2);ctx.arc(6,-4,2.5,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#2e135f';ctx.lineWidth=3;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-15,-12);ctx.lineTo(-4,-9);ctx.moveTo(15,-12);ctx.lineTo(4,-9);ctx.stroke();
-      ctx.fillStyle=finalArena?'#5c1121':'#341568';roundedRect(-7,7,14,5,3);
+      let transitionScale=1.7,transitionOpacity=1;
+      if(bossStage===3) {
+        if(transitionElapsed<620) {const t=transitionElapsed/620;transitionScale=1.7-.85*(1-(1-t)**3);transitionOpacity=1-.38*t;}
+        else if(transitionElapsed<1850) {const t=(transitionElapsed-620)/1230;transitionScale=.85+1.55*t+.13*Math.sin(t*Math.PI*9)*t;transitionOpacity=.62+.38*Math.abs(Math.sin(t*Math.PI*7));}
+        else {transitionScale=2.4-.2*riseEase+.07*Math.sin(transitionElapsed/110)*(1-riseEase);}
+        ctx.save();ctx.globalAlpha=.2+.22*Math.max(0,(transitionElapsed-620)/2580);ctx.strokeStyle='#ff9863';ctx.lineWidth=3;ctx.shadowColor='#ff653b';ctx.shadowBlur=20;
+        ctx.beginPath();ctx.arc(bx,by,size*(.85+transitionScale*.62),0,Math.PI*2);ctx.stroke();ctx.restore();
+      }
+      ctx.save();ctx.globalAlpha=transitionOpacity*entryEase;ctx.translate(bx,by+(bossStage===3?0:Math.sin(performance.now()/230)*2));const entryScale=.65+.35*entryEase;if(finalArena) {const scale=bossStage===3?transitionScale:bossStage===2?2.2:1.7*(1+.5*bossRageVisual)*entryScale;ctx.scale(scale,scale);}else ctx.scale(entryScale,entryScale);ctx.shadowColor=finalArena?'#ff5d32':'#b060ff';ctx.shadowBlur=finalArena?30:24;
+      drawBossBody(finalArena,bossStage===3 && transitionElapsed<620);
       if(bossShieldActive()) {
         ctx.strokeStyle='#b8e9ff';ctx.lineWidth=3;ctx.shadowColor='#7be0ff';ctx.shadowBlur=20;
         ctx.beginPath();ctx.arc(0,0,30+Math.sin(performance.now()/150)*1.5,0,Math.PI*2);ctx.stroke();
@@ -1004,12 +1250,17 @@ function createEyeGame(onClose) {
     }
     const px=(previousPlayer.x+(player.x-previousPlayer.x)*progress)*size+size/2,py=(previousPlayer.y+(player.y-previousPlayer.y)*progress)*size+size/2;
     if (Date.now()<magnetUntil) {
-      const pulse=2.05+Math.sin(performance.now()/180)*.08;
+      const pulse=magnetLevel+.12+Math.sin(performance.now()/180)*.08;
       ctx.save();ctx.strokeStyle='rgba(184,233,255,.72)';ctx.lineWidth=2;ctx.setLineDash([4,7]);ctx.lineDashOffset=-performance.now()/45;
       ctx.beginPath();ctx.arc(px,py,size*pulse,0,Math.PI*2);ctx.stroke();ctx.restore();
     }
     ctx.fillStyle='#F86B00';ctx.beginPath();ctx.arc(px,py,11.5,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(px+Math.cos(moving.angle)*11,py+Math.sin(moving.angle)*11,8.5+Math.sin(performance.now()/75)*1.5,0,Math.PI*2);ctx.fill();
+    if(phase==='boss' && Date.now()<invulnerableUntil && Date.now()-bossStartedAt<bossSafetyMs) {
+      const remaining=(invulnerableUntil-Date.now())/bossSafetyMs;
+      ctx.save();ctx.strokeStyle=`rgba(184,233,255,${.3+.55*Math.min(1,remaining)})`;ctx.lineWidth=2.5;ctx.setLineDash([3,5]);ctx.lineDashOffset=-performance.now()/35;
+      ctx.beginPath();ctx.arc(px,py,20+Math.sin(performance.now()/160)*1.5,0,Math.PI*2);ctx.stroke();ctx.restore();
+    }
     if (beamEnd && performance.now()<beamUntil) {ctx.strokeStyle='#b8e9ff';ctx.lineWidth=4;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(beamEnd.x*size+size/2,beamEnd.y*size+size/2);ctx.stroke();}
     if (hitAt && hitPosition) {
       const t=Math.min(1,(performance.now()-hitAt)/650),hx=hitPosition.x*size+size/2,hy=hitPosition.y*size+size/2;
@@ -1099,6 +1350,7 @@ function createEyeGame(onClose) {
     requestAnimationFrame(()=>dialog.classList.add('is-visible'));void joinRoom(invitedRoom);$('.eye-game-close').focus({preventScroll:true});
   }
   function testFinalBoss() {
+    if(testingFinalBoss && phase==='boss' && (bossStage===2||bossStage===3)) {startEscape();canvas.focus?.({preventScroll:true});return;}
     if(testingFinalBoss && phase==='boss' && bossStage===1) {startFinalBossSecondPhase();canvas.focus?.({preventScroll:true});return;}
     const activeRoom=room;
     clearInterval(roomPoll);room=null;roomPoll=0;
@@ -1170,7 +1422,7 @@ function createEyeGame(onClose) {
     const dx=event.clientX-swipeStart.x,dy=event.clientY-swipeStart.y;swipeStart=null;
     if (Math.max(Math.abs(dx),Math.abs(dy))<18) {if(canShoot()) shoot();return;}
     wanted=Math.abs(dx)>Math.abs(dy)?(dx>0?directions[0]:directions[2]):(dy>0?directions[1]:directions[3]);
-    if (!hasInput) {invulnerableUntil=Date.now()+1400;updateStatus('Your turn. Catch them all!');}hasInput=true;
+    if (!hasInput) {invulnerableUntil=Date.now()+1400;updateStatus(escape?'Climb through all five levels. Reach the rocket before the lava!':'Your turn. Catch them all!');}hasInput=true;
   });
   canvas.addEventListener('pointercancel',()=>{swipeStart=null;});
   document.addEventListener('keydown',event=>{
@@ -1197,7 +1449,7 @@ function createEyeGame(onClose) {
     }
     if (event.code==='Space') {event.preventDefault();shoot();return;}
     const map={ArrowRight:directions[0],d:directions[0],D:directions[0],ArrowDown:directions[1],s:directions[1],S:directions[1],ArrowLeft:directions[2],a:directions[2],A:directions[2],ArrowUp:directions[3],w:directions[3],W:directions[3]};
-    if (map[event.key]) {event.preventDefault();wanted=map[event.key];if(!hasInput){invulnerableUntil=Date.now()+1400;updateStatus('Your turn. Catch them all!');}hasInput=true;}
+    if (map[event.key]) {event.preventDefault();wanted=map[event.key];if(!hasInput){invulnerableUntil=Date.now()+1400;updateStatus(escape?'Climb through all five levels. Reach the rocket before the lava!':'Your turn. Catch them all!');}hasInput=true;}
   });
   document.addEventListener('keyup',event=>{
     heldGameKeys.delete(event.code);

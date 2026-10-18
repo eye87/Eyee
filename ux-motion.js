@@ -8,17 +8,31 @@
   const hero = document.querySelector('.hero-portrait');
   const process = document.querySelector('.ux-process');
   const sections = [...main.querySelectorAll(':scope > section')];
+  const projectStory=document.querySelector('.ux-project-story');
+  const serviceChapters=[...document.querySelectorAll('[data-service-step]')];
   let frame = 0;
-  const palette = sections.map(section=>section.matches('.hero,.client-strip,.ux-work,.ux-process,.ux-people')?[0,13,73]:section.matches('.ux-faq')?[241,244,255]:[255,255,255]);
+  const palette = sections.map(section=>section.matches('.hero,.client-strip,.ux-work,.ux-people')?[0,13,73]:section.matches('.ux-faq,.ux-services')?[241,244,255]:[255,255,255]);
   function paint() {
     frame = 0;
+    if(projectStory){
+      let active=0;
+      serviceChapters.forEach((chapter,index)=>{if(chapter.getBoundingClientRect().top<innerHeight*.55)active=index;});
+      projectStory.dataset.activeStep=String(active);
+      // The compact copy no longer supplies three distinct reading screens.
+      // Spread the zoom across the whole visual's passage through the viewport.
+      const rect=projectStory.getBoundingClientRect();
+      const progress=reduced()?0:Math.max(0,Math.min(1,(innerHeight*.8-rect.top)/(innerHeight*.63)));
+      const easedZoom=progress*progress*(3-2*progress);
+      projectStory.style.setProperty('--ux-project-zoom',String(1.02+easedZoom*.63));
+      projectStory.style.setProperty('--ux-project-origin',`${50+easedZoom*50}% 50%`);
+    }
     const line = innerHeight * .9;
     let current = 0;
     sections.forEach((section,index)=>{if(section.getBoundingClientRect().top<=line)current=index;});
     const box = sections[current].getBoundingClientRect();
     // Follow the team heading, not the section's generous top padding.
     const extraSpace=sections[current].matches('.ux-people')
-      ? Math.max(0,document.querySelector('#ux-people-title').getBoundingClientRect().top-box.top)+innerHeight*.2
+      ? Math.max(0,document.querySelector('#ux-people-title').getBoundingClientRect().top-box.top)+innerHeight*.08
       : sections[current].matches('.ux-work')?100:0;
     const blend = reduced() ? 1 : Math.max(0,Math.min(1,(line-box.top-extraSpace)/(innerHeight*.65)));
     const eased = blend*blend*(3-2*blend);
@@ -105,7 +119,7 @@
   document.addEventListener('eyeeaccessibilitychange',motionChanged);
   document.addEventListener('focusin',event=>event.target.closest('.ux-reveal-ready')?.classList.add('is-revealed'));
   const demo=document.querySelector('.ux-scan-demo');
-  const demoTabs=[...demo.querySelectorAll('[role="tab"]')];
+  const demoTabs=[...(demo?.querySelectorAll('[role="tab"]') || [])];
   function selectDemo(tab){
     demo.dataset.scanView=tab.dataset.scanTab;
     demoTabs.forEach(item=>{const selected=item===tab;item.setAttribute('aria-selected',String(selected));item.tabIndex=selected?0:-1;document.getElementById(item.getAttribute('aria-controls')).hidden=!selected;});

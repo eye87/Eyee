@@ -65,6 +65,9 @@ html[data-a11y-motion] :is(.ux-hero-visual,.ux-portraits figure,.ux-case-image i
 
 /* The homepage composition is shared; only the detail breadcrumb is additional. */
 .ux-home-hero .ux-breadcrumb {position:relative; z-index:1; margin:0 0 24px;}
+@media(max-width:650px) {.ux-home-hero .ux-breadcrumb {margin-top:20px; margin-bottom:8px;} .ux-home-hero h1 {margin-top:16px;}}
+@media(max-width:650px) {.ux-detail #ux-main .ux-intro {padding-top:24px;}}
+@media(max-width:650px) {.ux-detail .ux-challenges {row-gap:40px;}}
 .ux-home-hero .hero-portrait .ux-reel-launch {height:100%;}
 .ux-home-hero .hero-portrait .ux-reel-launch > img {height:100%; aspect-ratio:auto; border-radius:0;}
 .ux-home-hero .ux-lead {color:inherit;}
@@ -197,7 +200,7 @@ html:is([data-a11y-dark],[data-a11y-contrast]) .ux-detail .ux-work {background:#
 
 /* A quiet invitation, followed by an expressive brand-led footer. */
 .ux-process-heading {margin-bottom:72px;}
-.ux-steps {grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:88px; row-gap:64px; max-width:1160px; margin-inline:auto;}
+.ux-steps {grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:88px; row-gap:40px; max-width:1160px; margin-inline:auto;}
 .ux-steps li,.ux-steps li:first-child {display:grid; grid-template-columns:88px minmax(0,1fr); align-items:start; gap:28px;}
 .ux-steps li:nth-child(even) {margin-top:48px;}
 .ux-steps li:nth-child(3) {margin-left:24px;}
@@ -211,7 +214,7 @@ html:is([data-a11y-dark],[data-a11y-contrast]) .ux-detail .ux-work {background:#
 .ux-steps h3 {margin-top:4px;}
 .ux-steps li > div:last-child {max-width:340px;}
 .ux-steps p {max-width:340px;}
-@media(max-width:1100px) {.ux-steps {column-gap:48px; row-gap:56px;} .ux-steps li,.ux-steps li:first-child {grid-template-columns:72px minmax(0,1fr); gap:24px;} .ux-steps .ux-process-art {width:72px; height:72px;} .ux-steps .ux-process-art svg {width:52px; height:52px;}}
+@media(max-width:1100px) {.ux-steps {column-gap:48px; row-gap:32px;} .ux-steps li,.ux-steps li:first-child {grid-template-columns:72px minmax(0,1fr); gap:24px;} .ux-steps .ux-process-art {width:72px; height:72px;} .ux-steps .ux-process-art svg {width:52px; height:52px;}}
 @media(max-width:900px) {.ux-steps {grid-template-columns:1fr; max-width:600px; row-gap:48px;} .ux-steps li:nth-child(n) {margin-top:0; margin-left:0;} .ux-steps li:nth-child(even) {margin-left:32px;}}
 @media(max-width:650px) {.ux-steps {row-gap:40px;} .ux-process-heading {margin-bottom:48px;} .ux-steps li:nth-child(n) {margin:0;} .ux-steps li,.ux-steps li:first-child {grid-template-columns:64px minmax(0,1fr); gap:20px;} .ux-steps .ux-process-art {width:64px; height:64px;} .ux-steps .ux-process-art svg {width:48px; height:48px;}}
 .ux-detail #ux-main .ux-case-image {background:transparent; border:0; border-radius:0; overflow:visible; isolation:isolate; clip-path:inset(0 round 28px 28px 72px 28px); -webkit-clip-path:inset(0 round 28px 28px 72px 28px);}
@@ -266,22 +269,91 @@ html:is([data-a11y-dark],[data-a11y-contrast]) .ux-detail .ux-work {background:#
 .ux-team-editorial {display:grid; grid-template-columns:1fr 1.1fr; gap:64px 80px; align-items:center;}
 .ux-team-copy {max-width:520px;}
 .ux-team-copy h2 {text-wrap:balance;}
-.ux-team-copy .ux-text-link {margin-top:12px; color:var(--ux-accent);}
+.ux-team-copy .ux-text-link {margin-top:0; color:var(--ux-accent);}
 .ux-team-copy .ux-text-link:is(:hover,:focus-visible) {text-decoration-thickness:2px;}
 .ux-team-editorial .ux-portraits {position:relative; gap:24px; padding:0; width:100%; max-width:560px; justify-self:end;}
+@media(min-width:901px) {.ux-team-editorial .ux-portraits {align-self:start; margin-top:64px;}}
 .ux-team-editorial .ux-portraits::before {display:none;}
-.ux-team-editorial .ux-portraits figure {position:relative; transform:none;}
+.ux-team-editorial .ux-portraits figure {position:relative; transform:none; overflow:hidden; border-radius:24px 24px 56px 24px; isolation:isolate;}
 .ux-team-editorial .ux-portraits figure + figure {margin-top:32px; margin-left:0; transform:none;}
-.ux-team-editorial .ux-portraits img {aspect-ratio:.78; border-radius:24px 24px 56px 24px;}
+.ux-detail #ux-main .ux-team-editorial .ux-portraits img {aspect-ratio:.78; border-radius:0; clip-path:none; background:transparent; border:0; box-shadow:none;}
 .ux-team-editorial .ux-portraits figcaption {position:static; padding:0; margin-top:12px; text-align:left; background:transparent; color:inherit; border-radius:0;}
 .ux-team-editorial .ux-portraits figure:hover {transform:none;}
-.ux-team-editorial blockquote {position:relative; isolation:isolate; max-width:520px; margin:32px 0 24px; padding:24px 28px; border:0; color:var(--color-navy); text-align:left;}
-.ux-team-editorial blockquote::before {display:block; content:''; position:absolute; inset:0; z-index:-1; border-radius:40px 24px 48px 24px; background:#e7edff; transform:rotate(-1deg);}
-.ux-detail #ux-main .ux-team-editorial blockquote p {font:400 18px/1.6 Avenir,Arial,sans-serif; color:var(--color-navy); margin-bottom:20px;}
-.ux-quote-attribution {display:flex; align-items:center; flex-wrap:wrap; gap:12px 20px;}
-.ux-quote-attribution .ux-quote-logo {display:block; width:128px; height:auto; max-height:32px; object-fit:contain; filter:grayscale(1) brightness(.25);}
-.ux-detail #ux-main .ux-quote-attribution cite {flex:1 1 180px; color:var(--color-navy); font:400 13px/1.5 Avenir,Arial,sans-serif;}
+.ux-team-editorial .ux-portraits figure::after {content:''; position:absolute; inset:65% 0 0; z-index:1; pointer-events:none; background:linear-gradient(transparent,rgba(0,13,73,.82));}
+.ux-detail #ux-main .ux-team-editorial .ux-portraits figcaption {position:absolute; z-index:2; left:24px; bottom:24px; margin:0; padding:0; color:#fff; font:700 24px/1.2 "GT Walsheim Pro",Avenir,Arial,sans-serif; letter-spacing:-.035em;}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) {
+ html:not([data-a11y-motion]) .ux-team-editorial .ux-portraits figure {transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s ease;}
+ html:not([data-a11y-motion]) .ux-team-editorial .ux-portraits figure:hover {transform:translateY(-4px) scale(1.025) rotate(-1.25deg); box-shadow:0 16px 32px rgba(0,5,35,.2);}
+ html:not([data-a11y-motion]) .ux-team-editorial .ux-portraits figure:nth-child(2):hover {transform:translateY(-4px) scale(1.025) rotate(1.25deg);}
+}
+@media(max-width:650px) {.ux-detail #ux-main .ux-team-editorial .ux-portraits figcaption {left:16px; bottom:20px; font-size:23px;}}
+.ux-team-editorial blockquote {position:relative; isolation:isolate; max-width:520px; margin:40px 0 20px; padding:28px 28px; border:0; color:var(--color-navy); text-align:left; display:grid; grid-template-columns:36px minmax(0,1fr); column-gap:16px;}
+.ux-team-editorial blockquote::before {display:block; content:''; position:absolute; inset:0; z-index:-1; border-radius:40px 24px 48px 24px; background:#b9caff; transform:rotate(-1deg);}
+.ux-detail #ux-main .ux-team-editorial > .ux-team-copy > .ux-section-intro {font:400 clamp(18px,1.5vw,22px)/1.55 Avenir,Arial,Helvetica,sans-serif; letter-spacing:normal; max-width:620px;}
+.ux-quote-mark {display:block; grid-column:1; grid-row:1; margin:0; color:var(--color-blue); font:700 64px/.9 "GT Walsheim Pro",Avenir,Arial,sans-serif;}
+.ux-detail #ux-main .ux-team-editorial blockquote p {grid-column:2; font:700 21px/1.3 "GT Walsheim Pro",Avenir,Arial,sans-serif; letter-spacing:-.025em; color:var(--color-navy); margin:0 0 20px;}
+.ux-detail #ux-main .ux-team-editorial blockquote strong {font-weight:inherit; color:inherit;}
+.ux-detail #ux-main #ux-faq-title em {color:var(--color-blue);}
+.ux-detail #ux-main .ux-team-editorial .ux-quote-attribution {grid-column:2; display:block; color:var(--color-navy); font:400 13px/1.5 Avenir,Arial,sans-serif;}
+.ux-quote-name {font-weight:500;}
+.ux-quote-name::after {content:' | '; font-weight:400; color:#53618a;}
+.ux-quote-company {font-size:13px; color:#53618a;}
 .ux-team-editorial cite {font-size:14px;}
+/* Service chapters: visible content, alternating visual explanations. */
+.ux-service-story {display:grid; gap:104px; margin-top:80px;}
+.ux-service-chapter {display:grid; grid-template-columns:1fr 1.1fr; align-items:center; gap:80px;}
+.ux-service-chapter:nth-child(2) {grid-template-columns:1.1fr 1fr;}
+.ux-service-chapter:nth-child(2) .ux-service-copy {order:2;}
+.ux-service-copy {max-width:480px;}
+.ux-service-copy .ux-quickscan-cta {margin-top:24px; margin-right:24px; color:var(--color-navy); text-decoration-color:var(--color-blue);}
+.ux-service-copy .ux-quickscan-cta b {font-weight:500;}
+.ux-service-copy .ux-quickscan-cta span img {filter:brightness(0) saturate(100%) invert(31%) sepia(94%) saturate(2870%) hue-rotate(225deg);}
+.ux-service-copy .ux-quickscan-cta:is(:hover,:focus-visible) {color:var(--color-blue);}
+.ux-detail #ux-main .ux-service-copy h3 {font-size:clamp(28px,2.7vw,38px); line-height:1.12; letter-spacing:-.025em; margin:0 0 24px;}
+.ux-service-copy p {font-size:18px; line-height:1.65;}
+.ux-service-copy ul {list-style:none; margin:24px 0 0; padding:0; display:grid; gap:10px; font-size:15px; line-height:1.5;}
+.ux-service-copy li {padding-left:20px; position:relative;}
+.ux-service-copy li::before {content:''; position:absolute; left:0; top:.6em; width:6px; height:6px; border-radius:50%; background:var(--color-blue);}
+.ux-service-visual {position:relative; min-width:0; margin:0; padding:32px; isolation:isolate; color:var(--color-navy);}
+.ux-service-visual::before {content:''; position:absolute; inset:0; z-index:-1; background:#edf1ff; border-radius:70px 28px 80px 28px; transform:rotate(-2deg); transition:transform .5s ease;}
+.ux-visual-design::before {background:#dfe7ff; transform:rotate(2deg); border-radius:28px 80px 28px 60px;}
+.ux-visual-refine::before {background:#edf1ff; border-radius:80px 32px 48px 32px;}
+.ux-service-visual figcaption {font-size:13px; line-height:1.5; color:#53618a; margin-top:24px; max-width:360px;}
+.ux-flow-map {display:flex; align-items:center; justify-content:space-between; gap:8px; margin:8px 0 28px; font-size:12px;}
+.ux-flow-map span {padding:10px; border:1px solid #a8bcff; border-radius:12px; background:white;}
+.ux-flow-map i {font-style:normal; color:#3558fd;}
+.ux-mini-browser {overflow:hidden; border:1px solid #c8d3f5; border-radius:16px; background:white;}
+.ux-browser-bar {display:flex; gap:5px; padding:12px; border-bottom:1px solid #e2e8f8;}
+.ux-browser-bar i {width:5px; height:5px; border-radius:50%; background:#becbf1;}
+.ux-mini-layout {display:grid; grid-template-columns:1.2fr 1fr; gap:24px; align-items:center; padding:28px 24px; min-height:200px;}
+.ux-skeleton {display:block; height:5px; margin:10px 0; border-radius:4px; background:#cbd3e4;}
+.ux-skeleton-title {height:14px; width:85%; margin-bottom:22px; background:#8794ad;}
+.ux-skeleton-short {width:65%;}
+.ux-wire-action {display:inline-block; margin-top:18px; padding:9px 12px; border:1px solid #8794ad; border-radius:4px; font-size:11px;}
+.ux-wire-grid {display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.ux-wire-grid i {height:56px; border:1px dashed #a9b4cb; background:#f5f7fa; border-radius:5px;}
+.ux-design-swatches {display:flex; align-items:center; gap:10px; margin-bottom:24px;}
+.ux-design-swatches i {width:28px; height:28px; border-radius:50%; background:#000d49;}
+.ux-design-swatches i:nth-child(2) {background:#3558fd;}
+.ux-design-swatches i:nth-child(3) {background:#a8bcff;}
+.ux-design-swatches span {margin-left:auto; font-size:28px; font-weight:700;}
+.ux-finished-ui .ux-mini-layout strong {display:block; font:700 24px/1.08 'GT Walsheim Pro',sans-serif; letter-spacing:-.03em;}
+.ux-mini-description {display:block; font-size:11px; line-height:1.5; margin:14px 0;}
+.ux-ui-action {display:flex; align-items:center; justify-content:space-between; gap:10px; width:fit-content; padding:12px 16px; border-radius:30px; background:#3558fd; color:white; font-size:11px;}
+.ux-ui-action i {font-style:normal;}
+.ux-design-art {position:relative; height:140px; background:#edf1ff; border-radius:36px 8px 36px 8px;}
+.ux-design-art i {position:absolute; width:65px; height:65px; top:20px; left:12px; background:#a8bcff; border-radius:18px; transform:rotate(-15deg);}
+.ux-design-art i+i {width:58px; height:58px; background:#3558fd; border-radius:50%; top:65px; left:auto; right:10px;}
+.ux-form-fragment {padding:28px; background:white; border-radius:20px; border:1px solid #d1dcfa;}
+.ux-form-title {display:block; font:700 25px/1.1 'GT Walsheim Pro',sans-serif; margin-bottom:24px;}
+.ux-form-label {display:block; font-size:13px; margin-bottom:8px;}
+.ux-form-input {display:block; padding:13px; border:2px solid #3558fd; border-radius:8px; font-size:14px; color:#53618a;}
+.ux-form-hint {display:block; margin:10px 0 20px; font-size:12px; line-height:1.5; color:#53618a;}
+.ux-detail-note {display:flex; align-items:center; gap:12px; margin:20px 0 0 16px; font-size:13px; line-height:1.5; max-width:300px;}
+.ux-detail-note svg {width:28px; flex-shrink:0; color:#3558fd;}
+@media(prefers-reduced-motion:no-preference) {html:not([data-a11y-motion]) .ux-service-visual:hover::before {transform:rotate(0deg) scale(1.025);}}
+@media(max-width:1100px) {.ux-service-chapter,.ux-service-chapter:nth-child(2) {gap:40px;} .ux-service-visual {padding:24px;} .ux-mini-layout {gap:16px; padding:20px 16px;}}
+@media(max-width:750px) {.ux-service-story {gap:64px; margin-top:48px;} .ux-service-chapter,.ux-service-chapter:nth-child(2) {grid-template-columns:1fr; gap:28px;} .ux-service-chapter:nth-child(2) .ux-service-copy {order:0;} .ux-service-copy {max-width:560px;} .ux-service-visual {width:100%; max-width:540px; justify-self:center;} .ux-service-copy p {font-size:17px;} .ux-finished-ui .ux-mini-layout strong {font-size:21px;} .ux-flow-map {font-size:10px; gap:4px;} .ux-flow-map span {padding:8px;} .ux-mini-layout {gap:12px;} .ux-ui-action {padding:10px; font-size:10px;} .ux-service-visual figcaption {font-size:12px;}}
 @media(max-width:1100px) {.ux-detail #ux-main .ux-scan {gap:40px;} .ux-scan-demo {padding:24px;} .ux-team-editorial {gap:48px 40px;}}
 @media(max-width:900px) {.ux-team-editorial {grid-template-columns:1fr;} .ux-team-copy {max-width:700px;} .ux-team-editorial .ux-portraits {max-width:580px; width:100%; justify-self:start;}}
 @media(max-width:650px) {.ux-detail #ux-main .ux-scan {padding:0 8px; gap:40px;} .ux-scan-demo {padding:24px 16px;} .ux-scan-demo::before {inset:0;} .ux-demo-explanation {min-height:156px;} .ux-demo-layout {gap:12px;} .ux-demo-tabs button {font-size:13px;} .ux-team-editorial {gap:32px;} .ux-team-editorial .ux-portraits {gap:16px; padding:0;} .ux-team-editorial .ux-portraits figure + figure {margin-top:24px;} .ux-team-editorial .ux-portraits figcaption {padding:0; font-size:13px;} .ux-team-editorial blockquote {padding:24px;}}

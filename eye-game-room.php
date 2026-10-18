@@ -2,6 +2,7 @@
 declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
+const ESCAPE_HEIGHT = 180;
 function reply(int $status, array $payload): void { http_response_code($status); echo json_encode($payload, JSON_UNESCAPED_SLASHES); exit; }
 function pickBonusCell(array $room, int $cols, int $rows): ?array {
   $candidates=[];$near=[];
@@ -38,17 +39,14 @@ function finalBossShieldActive(array $room, float $now): bool {
   return fmod($elapsed+7.0,8.0)<2.5;
 }
 function bossPosition(array $room, int $cols, int $rows, float $now): array {
+  if ((int)($room['bossStage']??1)===3) return ['x'=>(int)($room['bossTransitionX']??intdiv($cols,2)),'y'=>(int)($room['bossTransitionY']??max(3,intdiv($rows,2)-2)),'dx'=>0];
   if ((int)($room['bossStage']??1)===2) {
     $elapsed=max(0,$now-(float)($room['bossStage2StartedAt']??$now));
-    $cycle=min(3,(int)floor($elapsed/3.6));$within=$elapsed-$cycle*3.6;
+    $within=fmod($elapsed,3.6);
     $x=(int)($room['bossStage2X']??intdiv($cols,2));
-    if ($cycle===0 && $within<.65) {
-      $entryY=max(3,intdiv($rows,2)-2);$t=$within/.65;
-      $y=$entryY+(2-$entryY)*(1-pow(1-$t,3));
-    }
+    if (!empty($room['bossFallStartedAt'])) $y=$rows-2+5*min(1,($now-(float)$room['bossFallStartedAt'])/1.4);
     elseif ($within<1.6) $y=2;
     elseif ($within<2.2) $y=2+($rows-4)*($within-1.6)/.6;
-    elseif ($cycle===3) $y=$rows-2+5*min(1,($within-2.2)/1.4);
     else $y=$rows-2-($rows-4)*min(1,($within-2.2)/1.4);
     return ['x'=>$x,'y'=>$y,'dx'=>0];
   }
@@ -56,6 +54,14 @@ function bossPosition(array $room, int $cols, int $rows, float $now): array {
   $period=$distance*4;$part=$steps%$period;
   $offset=$part<=$distance ? $part : ($part<=$distance*3 ? $distance*2-$part : $part-$distance*4);
   return ['x'=>$middle+$offset,'y'=>max(3,intdiv($rows,2)-2),'dx'=>$part<$distance || $part>=$distance*3 ? 1:-1];
+}
+function bossOverOpenFloor(array $impacts, int $landingX): bool {
+  for ($x=$landingX-2;$x<=$landingX+2;$x++) {
+    $hits=0;
+    foreach ($impacts as $impact) if (abs($x-(int)$impact['x'])<=2) $hits++;
+    if ($hits<3) return false;
+  }
+  return true;
 }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') reply(405, ['error'=>'POST required']);
 $request=json_decode(file_get_contents('php://input'),true);
@@ -95,7 +101,7 @@ if ($action==='join') {
     $slots=array_column($rooms[$roomId]['players'],'slot');
     $slot=in_array(1,$slots,true)?2:1;
     [, $row]=boardSize((int)$rooms[$roomId]['level']);
-    $rooms[$roomId]['players'][$token]=['slot'=>$slot,'x'=>1,'y'=>$slot===1?1:$row-2,'blasterLevel'=>0,'bossBlaster'=>false,'wallEaterLevel'=>0,'wallEaterUntil'=>0,'seen'=>$now];
+    $rooms[$roomId]['players'][$token]=['slot'=>$slot,'x'=>1,'y'=>$slot===1?1:$row-2,'blasterLevel'=>0,'magnetLevel'=>0,'bossBlaster'=>false,'wallEaterLevel'=>0,'wallEaterUntil'=>0,'seen'=>$now];
     $result=['room'=>$roomId,'token'=>$token,'slot'=>$slot];
   }
 } else {
@@ -117,8 +123,8 @@ if ($action==='join') {
       $room['level']=1;$room['baseScore']=0;$room['levelScore']=0;$room['earnedScore']=0;$room['eaten']=[];$room['removedWalls']=[];$room['ghostAwards']=[];$room['purchases']=[];
       $room['bonus']=null;$room['nextBonusAt']=$now+random_int(5,7);$room['multiplier']=1;$room['multiplierUntil']=0;
       $room['rageUntil']=0;$room['nextRageAt']=$now+random_int(18,26);$room['bossRageWave']=0;$room['bossMinionKills']=[];
-      $room['phase']='dots';$room['bossHp']=0;$room['bossMaxHp']=0;$room['bossHits']=[];$room['bossStage']=1;$room['floorDamage']=0;$room['floorImpacts']=[];$room['bossStage2StartedAt']=null;$room['bossStage2X']=null;$room['floorBreakX']=null;$room['hasKey']=false;$room['droppedKey']=null;$room['bossStartedAt']=null;
-      foreach ($room['players'] as &$p) {$p['x']=1;$p['y']=$p['slot']===1?1:11;$p['blasterLevel']=0;$p['bossBlaster']=false;$p['wallEaterLevel']=0;$p['wallEaterUntil']=0;}
+      $room['phase']='dots';$room['escapeStartedAt']=null;$room['launchStartedAt']=null;$room['bossHp']=0;$room['bossMaxHp']=0;$room['bossHits']=[];$room['bossStage']=1;$room['floorDamage']=0;$room['floorImpacts']=[];$room['bossStage2StartedAt']=null;$room['bossStage2X']=null;$room['bossFallStartedAt']=null;$room['bossTransitionStartedAt']=null;$room['bossTransitionX']=null;$room['bossTransitionY']=null;$room['floorBreakX']=null;$room['hasKey']=false;$room['droppedKey']=null;$room['bossStartedAt']=null;
+      foreach ($room['players'] as &$p) {$p['x']=1;$p['y']=$p['slot']===1?1:11;$p['blasterLevel']=0;$p['magnetLevel']=0;$p['bossBlaster']=false;$p['wallEaterLevel']=0;$p['wallEaterUntil']=0;}
       unset($p);
     }
     $generation=(int)($request['generation']??0);
@@ -150,6 +156,14 @@ if ($action==='join') {
     $player=&$room['players'][$token];
     $purchaseResults=[];
     if ($sameGeneration) {
+      if ($room['phase']==='escape' || $room['phase']==='launch') {
+        $player['escapeX']=max(1,min(25,(int)($request['escapeX']??$player['escapeX']??13)));
+        $player['escapeY']=max(1,min(ESCAPE_HEIGHT-2,(int)($request['escapeY']??$player['escapeY']??ESCAPE_HEIGHT-5)));
+        if ($room['phase']==='escape' && !empty($request['escapeWin']) && $player['escapeY']<=3 && abs($player['escapeX']-13)<=2) {
+          $room['phase']='launch';$room['launchStartedAt']=$now;
+        }
+        if ($room['phase']==='launch' && $now-(float)($room['launchStartedAt']??$now)>=2.2) $room['phase']='won';
+      }
       $player['x']=max(1,min($cols-2,(int)($request['x']??$player['x'])));
       $player['y']=max(1,min($rows-2,(int)($request['y']??$player['y'])));
       $claim=$request['claimBonus']??null;
@@ -170,7 +184,7 @@ if ($action==='join') {
         }
       }
       if ($room['phase']==='dots' && count($room['eaten'])>=totalDots($cols,$rows)) {
-        $room['phase']='boss';$room['bossStage']=1;$room['floorDamage']=0;$room['floorImpacts']=[];$room['bossStartedAt']=$now;$room['bossMaxHp']=(int)$room['level']===5?32:max(5,(int)$room['level']+4);$room['bossHp']=$room['bossMaxHp'];
+        $room['phase']='boss';$room['bossStage']=1;$room['floorDamage']=0;$room['floorImpacts']=[];$room['bossFallStartedAt']=null;$room['bossStartedAt']=$now;$room['bossMaxHp']=(int)$room['level']===5?32:max(5,(int)$room['level']+4);$room['bossHp']=$room['bossMaxHp'];
         foreach ($room['players'] as &$p) $p['bossBlaster']=false;
         unset($p);
         $room['bonus']=null;$room['rageUntil']=0;$room['bossRageWave']=0;$room['bossMinionKills']=[];
@@ -197,8 +211,9 @@ if ($action==='join') {
           $room['bossHp']=max(0,(int)$room['bossHp']-max(1,(int)($player['blasterLevel']??0)));
           if ($room['bossHp']===0) {
             if ((int)$room['level']===5) {
-              $room['bossStage']=2;$room['bossStage2StartedAt']=$now;$room['bossStage2X']=intdiv($cols,2);
-              $room['floorDamage']=0;$room['floorImpacts']=[];$room['floorBreakX']=intdiv($cols,2);$room['rageUntil']=0;$room['nextRageAt']=$now+3600;
+              $position=bossPosition($room,$cols,$rows,$now);
+              $room['bossStage']=3;$room['bossTransitionStartedAt']=$now;$room['bossTransitionX']=$position['x'];$room['bossTransitionY']=$position['y'];
+              $room['floorDamage']=0;$room['floorImpacts']=[];$room['floorBreakX']=intdiv($cols,2);$room['bossFallStartedAt']=null;$room['rageUntil']=0;$room['nextRageAt']=$now+3600;
             }
             else {$position=bossPosition($room,$cols,$rows,$now);$room['droppedKey']=['x'=>$position['x'],'y'=>$position['y']];$room['phase']='key';}
             if ((int)$room['level']!==5) {$room['levelScore']+=500;$room['earnedScore']+=500;}
@@ -206,12 +221,17 @@ if ($action==='join') {
           }
         }
       }
+      if ($room['phase']==='boss' && (int)$room['bossStage']===3 && $now-(float)$room['bossTransitionStartedAt']>=3.2) {
+        $room['bossStage']=2;$room['bossStage2StartedAt']=(float)$room['bossTransitionStartedAt']+3.2;
+        $room['bossStage2X']=(int)$room['bossTransitionX'];
+      }
       if ($room['phase']==='boss' && (int)$room['bossStage']===2) {
         $elapsed=max(0,$now-(float)$room['bossStage2StartedAt']);
-        if ($elapsed>=14.4) {
-          $room['phase']='won';$room['levelScore']+=500;$room['earnedScore']+=500;
-        } else {
-          $cycle=min(3,(int)floor($elapsed/3.6));$within=$elapsed-$cycle*3.6;
+        if (!empty($room['bossFallStartedAt']) && $now-(float)$room['bossFallStartedAt']>=1.4) {
+          $room['phase']='escape';$room['escapeStartedAt']=$now;$room['levelScore']+=500;$room['earnedScore']+=500;
+          foreach ($room['players'] as &$member) {$member['escapeX']=13;$member['escapeY']=ESCAPE_HEIGHT-5;} unset($member);
+        } elseif (empty($room['bossFallStartedAt'])) {
+          $cycle=(int)floor($elapsed/3.6);$within=fmod($elapsed,3.6);
           if ($within<1.6) {
             $difference=$player['x']-(int)$room['bossStage2X'];
             $room['bossStage2X']=max(3,min($cols-4,(int)$room['bossStage2X']+max(-2,min(2,$difference))));
@@ -219,6 +239,7 @@ if ($action==='join') {
           if ($within>=2.2 && (int)$room['floorDamage']<$cycle+1) {
             $room['floorDamage']=$cycle+1;$room['floorBreakX']=$room['bossStage2X'];
             $room['floorImpacts'][]=['x'=>(int)$room['bossStage2X'],'level'=>$cycle+1];
+            if (bossOverOpenFloor($room['floorImpacts'],(int)$room['bossStage2X'])) $room['bossFallStartedAt']=$now;
           }
         }
       }
@@ -250,11 +271,10 @@ if ($action==='join') {
           $purchaseKey=$token.':'.$id;
           if (isset($room['purchases'][$purchaseKey])) {$purchaseResults[$id]=true;continue;}
           $tier=(int)($player['blasterLevel']??0);
-          $cost=$type==='life'||$type==='wallEater'?500:($type==='pause'||$type==='magnet'?300:($tier<5?300*($tier+1):PHP_INT_MAX));
+          if ($type==='blaster' && $tier>=5) {$purchaseResults[$id]=false;continue;}
           if ($type==='wallEater' && (int)($player['wallEaterLevel']??0)===(int)$room['level']) {$purchaseResults[$id]=false;continue;}
-          if ((int)$room['baseScore']+(int)$room['levelScore']<$cost) {$purchaseResults[$id]=false;continue;}
-          $room['levelScore']-=$cost;
           if ($type==='blaster') $player['blasterLevel']=$tier+1;
+          if ($type==='magnet') $player['magnetLevel']=min(4,(int)($player['magnetLevel']??0)+1);
           if ($type==='wallEater') {$player['wallEaterLevel']=$room['level'];$player['wallEaterUntil']=$now+20;}
           $room['purchases'][$purchaseKey]=$type;
           $purchaseResults[$id]=true;
@@ -276,7 +296,7 @@ if ($action==='join') {
         $room['bonus']=null;$room['multiplier']=1;$room['multiplierUntil']=0;
         $room['rageUntil']=0;$room['nextRageAt']=$now+random_int(18,26);$room['bossRageWave']=0;$room['bossMinionKills']=[];
         $room['nextBonusAt']=$now+random_int(5,7);
-        $room['phase']='dots';$room['bossHp']=0;$room['bossMaxHp']=0;$room['bossHits']=[];$room['bossStage']=1;$room['floorDamage']=0;$room['floorImpacts']=[];$room['bossStage2StartedAt']=null;$room['bossStage2X']=null;$room['floorBreakX']=null;$room['hasKey']=false;$room['droppedKey']=null;$room['bossStartedAt']=null;
+        $room['phase']='dots';$room['escapeStartedAt']=null;$room['launchStartedAt']=null;$room['bossHp']=0;$room['bossMaxHp']=0;$room['bossHits']=[];$room['bossStage']=1;$room['floorDamage']=0;$room['floorImpacts']=[];$room['bossStage2StartedAt']=null;$room['bossStage2X']=null;$room['bossFallStartedAt']=null;$room['bossTransitionStartedAt']=null;$room['bossTransitionX']=null;$room['bossTransitionY']=null;$room['floorBreakX']=null;$room['hasKey']=false;$room['droppedKey']=null;$room['bossStartedAt']=null;
         [, $rows]=boardSize((int)$room['level']);
         foreach ($room['players'] as &$p) {$p['x']=1;$p['y']=$p['slot']===1?1:$rows-2;$p['bossBlaster']=false;$p['wallEaterLevel']=0;$p['wallEaterUntil']=0;}
         unset($p);
@@ -290,10 +310,10 @@ if ($action==='join') {
     }
     $player['seen']=$now;unset($player);
     $players=[];
-    foreach ($room['players'] as $id=>$member) $players[]=['slot'=>$member['slot'],'x'=>$member['x'],'y'=>$member['y'],'self'=>$id===$token,'blasterLevel'=>$id===$token?(int)($member['blasterLevel']??0):null,'bossBlaster'=>$id===$token?!empty($member['bossBlaster']):null,'wallEaterLevel'=>$id===$token?(int)($member['wallEaterLevel']??0):null,'wallEaterRemainingMs'=>$id===$token?(int)round(max(0,(float)($member['wallEaterUntil']??0)-$now)*1000):null];
+    foreach ($room['players'] as $id=>$member) $players[]=['slot'=>$member['slot'],'x'=>$member['x'],'y'=>$member['y'],'escapeX'=>(int)($member['escapeX']??13),'escapeY'=>(int)($member['escapeY']??ESCAPE_HEIGHT-5),'self'=>$id===$token,'blasterLevel'=>$id===$token?(int)($member['blasterLevel']??0):null,'magnetLevel'=>$id===$token?(int)($member['magnetLevel']??0):null,'bossBlaster'=>$id===$token?!empty($member['bossBlaster']):null,'wallEaterLevel'=>$id===$token?(int)($member['wallEaterLevel']??0):null,'wallEaterRemainingMs'=>$id===$token?(int)round(max(0,(float)($member['wallEaterUntil']??0)-$now)*1000):null];
     [$bossCols,$bossRows]=boardSize((int)$room['level']);
     $boss=$room['phase']==='boss'?bossPosition($room,$bossCols,$bossRows,$now):null;
-    $result=['generation'=>$room['generation'],'run'=>$room['run'],'level'=>$room['level'],'eaten'=>array_keys($room['eaten']),'removedWalls'=>array_keys($room['removedWalls']),'score'=>(int)$room['baseScore']+(int)$room['levelScore'],'earnedScore'=>(int)$room['earnedScore'],'purchaseResults'=>$purchaseResults,'players'=>$players,'bonus'=>!empty($room['bonus'])?['x'=>$room['bonus']['x'],'y'=>$room['bonus']['y'],'multiplier'=>$room['bonus']['multiplier'],'remainingMs'=>(int)round(max(0,(float)$room['bonus']['expiresAt']-$now)*1000)]:null,'multiplier'=>$room['multiplier'],'multiplierRemainingMs'=>(int)round(max(0,(float)($room['multiplierUntil']??0)-$now)*1000),'rageRemainingMs'=>(int)round(max(0,(float)$room['rageUntil']-$now)*1000),'rageNextMs'=>(int)round(max(0,(float)$room['nextRageAt']-$now)*1000),'bossRageWave'=>(int)$room['bossRageWave'],'bossMinionKills'=>array_map('intval',array_keys($room['bossMinionKills'])),'phase'=>$room['phase'],'bossStage'=>(int)$room['bossStage'],'floorDamage'=>(int)$room['floorDamage'],'floorBreakX'=>(int)($room['floorBreakX']??intdiv($bossCols,2)),'floorImpacts'=>$room['floorImpacts'],'bossStage2ElapsedMs'=>(int)round(max(0,$now-(float)($room['bossStage2StartedAt']??$now))*1000),'bossHp'=>(int)($room['bossHp']??0),'bossMaxHp'=>(int)($room['bossMaxHp']??0),'bossElapsedMs'=>$room['phase']==='boss'?(int)round(max(0,$now-(float)($room['bossStartedAt']??$now))*1000):0,'hasKey'=>!empty($room['hasKey']),'droppedKey'=>$room['droppedKey']??null,'boss'=>$boss];
+    $result=['generation'=>$room['generation'],'run'=>$room['run'],'level'=>$room['level'],'eaten'=>array_keys($room['eaten']),'removedWalls'=>array_keys($room['removedWalls']),'score'=>(int)$room['baseScore']+(int)$room['levelScore'],'earnedScore'=>(int)$room['earnedScore'],'purchaseResults'=>$purchaseResults,'players'=>$players,'bonus'=>!empty($room['bonus'])?['x'=>$room['bonus']['x'],'y'=>$room['bonus']['y'],'multiplier'=>$room['bonus']['multiplier'],'remainingMs'=>(int)round(max(0,(float)$room['bonus']['expiresAt']-$now)*1000)]:null,'multiplier'=>$room['multiplier'],'multiplierRemainingMs'=>(int)round(max(0,(float)($room['multiplierUntil']??0)-$now)*1000),'rageRemainingMs'=>(int)round(max(0,(float)$room['rageUntil']-$now)*1000),'rageNextMs'=>(int)round(max(0,(float)$room['nextRageAt']-$now)*1000),'bossRageWave'=>(int)$room['bossRageWave'],'bossMinionKills'=>array_map('intval',array_keys($room['bossMinionKills'])),'phase'=>$room['phase'],'escapeElapsedMs'=>(int)round(max(0,$now-(float)($room['escapeStartedAt']??$now))*1000),'launchElapsedMs'=>(int)round(max(0,$now-(float)($room['launchStartedAt']??$now))*1000),'bossStage'=>(int)$room['bossStage'],'floorDamage'=>(int)$room['floorDamage'],'floorBreakX'=>(int)($room['floorBreakX']??intdiv($bossCols,2)),'floorImpacts'=>$room['floorImpacts'],'bossTransitionElapsedMs'=>(int)round(max(0,$now-(float)($room['bossTransitionStartedAt']??$now))*1000),'bossTransitionX'=>(int)($room['bossTransitionX']??intdiv($bossCols,2)),'bossTransitionY'=>(int)($room['bossTransitionY']??max(3,intdiv($bossRows,2)-2)),'bossFalling'=>!empty($room['bossFallStartedAt']),'bossFallElapsedMs'=>(int)round(max(0,$now-(float)($room['bossFallStartedAt']??$now))*1000),'bossStage2ElapsedMs'=>(int)round(max(0,$now-(float)($room['bossStage2StartedAt']??$now))*1000),'bossHp'=>(int)($room['bossHp']??0),'bossMaxHp'=>(int)($room['bossMaxHp']??0),'bossElapsedMs'=>$room['phase']==='boss'?(int)round(max(0,$now-(float)($room['bossStartedAt']??$now))*1000):0,'hasKey'=>!empty($room['hasKey']),'droppedKey'=>$room['droppedKey']??null,'boss'=>$boss];
     unset($room);
   }
 }

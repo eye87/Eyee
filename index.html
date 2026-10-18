@@ -242,12 +242,12 @@
           </div>
           <div class="eye-game-lives" id="eye-game-lives" aria-label="3 lives"><i class="eye-game-life"></i><i class="eye-game-life"></i><i class="eye-game-life"></i></div>
           <span class="eye-game-level" id="eye-game-level">Level 1</span>
-          <p id="eye-game-instructions" class="eye-game-sr-only">The eye moves on its own. Steer with the arrow keys, WASD, or swipe across the board. Collect every dot. When the mini-boss appears, pick up the blaster or a blaster upgrade, dodge its shots, and defeat it. A key will appear for the green door at the bottom. Avoid the ghosts. Multipliers can appear in every level. Earn XP to level up and choose whether to buy or skip an upgrade. Each XP level takes more XP than the last. Press Space or tap the board to fire your blaster.</p>
+          <p id="eye-game-instructions" class="eye-game-sr-only">The eye moves on its own. Steer with the arrow keys, WASD, or swipe across the board. Collect every dot. When the mini-boss appears, pick up the blaster or a blaster upgrade, dodge its shots, and defeat it. A key will appear for the green door at the bottom. Avoid the ghosts. Multipliers can appear in every level. Earn XP to level up and choose a free upgrade or skip it. Each XP level takes more XP than the last. Press Space or tap the board to fire your blaster. After the final boss falls into the lava, climb back through five levels and reach the rocket before the lava catches you.</p>
         </div>
         <div class="eye-game-layout">
           <div class="eye-game-stage">
             <div class="eye-game-board-wrap"><canvas id="eye-game-board" width="532" height="420" role="img" aria-label="Game board with the Eyee eye, dots, and ghosts"></canvas><span class="eye-game-multiplier" id="eye-game-multiplier" hidden><strong>2×</strong><span>points · 7 sec</span></span><div class="eye-game-board-hud"><span class="eye-game-rage-timer" id="eye-game-rage-timer" hidden><strong>Rage</strong><span>5 sec</span></span><div class="eye-game-ghost-cooldown" hidden aria-label="Ghost freeze"><span>5</span></div></div><div class="eye-game-magnet-timer" hidden aria-label="Dot magnet"><span>8</span></div></div>
-            <aside class="eye-game-progress" aria-label="Descent progress"><ol id="eye-game-progress-list"></ol></aside>
+            <aside class="eye-game-progress" aria-label="Level progress"><ol id="eye-game-progress-list"></ol></aside>
             <aside class="eye-game-leaderboard" aria-labelledby="eye-game-leaderboard-title" hidden>
               <p class="eye-game-over-label">Game over</p>
               <h3 id="eye-game-leaderboard-title">Top 5</h3>
@@ -259,7 +259,7 @@
               <p class="eye-game-leaderboard-note" role="status" aria-live="polite"></p>
               <button class="eye-game-restart" type="button">Play again</button>
             </aside>
-            <div class="eye-game-victory" hidden role="status"><span>THE CORE</span><h3>Final boss defeated.</h3><p>You made it all the way down.</p><button type="button">Play again</button></div>
+            <div class="eye-game-victory" hidden role="status"><span>ESCAPE COMPLETE</span><h3>Back to the surface.</h3><p>You outran the lava and made it into the rocket.</p><button type="button">Play again</button></div>
           </div>
           <div class="eye-game-controls">
             <button class="eye-game-invite" type="button" disabled>Invite a friend</button>
@@ -275,17 +275,17 @@
         </div>
         <div class="eye-game-upgrade" hidden role="dialog" aria-modal="true" aria-labelledby="eye-game-upgrade-title" aria-describedby="eye-game-upgrade-hint">
           <div class="eye-game-upgrade-panel">
-            <span class="eye-game-upgrade-kicker"><span class="eye-game-upgrade-coin" aria-hidden="true">✦</span><strong id="eye-game-upgrade-balance">1,000</strong> points available</span>
+            <span class="eye-game-upgrade-kicker"><span class="eye-game-upgrade-coin" aria-hidden="true">✦</span> XP level unlocked</span>
             <h3 id="eye-game-upgrade-title">Choose an upgrade</h3>
             <p>A little extra power for the road ahead. Pick what suits you.</p>
             <div class="eye-game-upgrade-options">
-              <button type="button" data-upgrade="life"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 40 8.7 25.4C2.5 19.5 6.1 9 15 9c4.3 0 7.3 2.2 9 5.6C25.7 11.2 28.7 9 33 9c8.9 0 12.5 10.5 6.3 16.4L24 40Z"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">500</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Extra life</strong><span class="eye-game-upgrade-description">One more chance.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
-              <button type="button" data-upgrade="pause"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/><path d="M15 33V22a9 9 0 0 1 18 0v11l-4.5-3-4.5 3-4.5-3-4.5 3Z"/><circle cx="21" cy="22" r="1.2" fill="currentColor" stroke="none"/><circle cx="27" cy="22" r="1.2" fill="currentColor" stroke="none"/><path d="M10 38 38 10" stroke-width="4"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">300</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Ghost freeze</strong><span class="eye-game-upgrade-description">Five seconds of peace.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
-              <button type="button" data-upgrade="blaster"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M6 18h24l5 3h5v8h-5l-5 3H20l-2 9h-7l-2-9H6V18Z"/><path d="M13 24h13M41 15l3-3M43 24h3M41 33l3 3"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">300</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Blaster level 1</strong><span class="eye-game-upgrade-description">Fire with Space.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
-              <button type="button" data-upgrade="magnet"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M11 12v16a13 13 0 0 0 26 0V12"/><path d="M11 8h8v13h-8zM29 8h8v13h-8z" fill="currentColor" stroke="none"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">300</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Dot magnet</strong><span class="eye-game-upgrade-description">Pull in dots for eight seconds.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
-              <button type="button" data-upgrade="wallEater"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M12 41 30 16M9 17c10-8 23-8 32 1-8-1-14 1-19 6M28 14l4 6"/><path d="m9 17-2 5m34-4 1 5"/></svg></span><span class="eye-game-upgrade-price"><strong class="eye-game-upgrade-cost">500</strong><small>points</small></span></span><strong class="eye-game-upgrade-name">Wall chomper</strong><span class="eye-game-upgrade-description">Bite through inner walls and ghosts for 20 seconds.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+              <button type="button" data-upgrade="life"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 40 8.7 25.4C2.5 19.5 6.1 9 15 9c4.3 0 7.3 2.2 9 5.6C25.7 11.2 28.7 9 33 9c8.9 0 12.5 10.5 6.3 16.4L24 40Z"/></svg></span></span><strong class="eye-game-upgrade-name">Extra life</strong><span class="eye-game-upgrade-description">One more chance.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+              <button type="button" data-upgrade="pause"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/><path d="M15 33V22a9 9 0 0 1 18 0v11l-4.5-3-4.5 3-4.5-3-4.5 3Z"/><circle cx="21" cy="22" r="1.2" fill="currentColor" stroke="none"/><circle cx="27" cy="22" r="1.2" fill="currentColor" stroke="none"/><path d="M10 38 38 10" stroke-width="4"/></svg></span></span><strong class="eye-game-upgrade-name">Ghost freeze</strong><span class="eye-game-upgrade-description">Five seconds of peace.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+              <button type="button" data-upgrade="blaster"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M6 18h24l5 3h5v8h-5l-5 3H20l-2 9h-7l-2-9H6V18Z"/><path d="M13 24h13M41 15l3-3M43 24h3M41 33l3 3"/></svg></span></span><strong class="eye-game-upgrade-name">Blaster level 1</strong><span class="eye-game-upgrade-description">Fire with Space.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+              <button type="button" data-upgrade="magnet"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M11 12v16a13 13 0 0 0 26 0V12"/><path d="M11 8h8v13h-8zM29 8h8v13h-8z" fill="currentColor" stroke="none"/></svg></span></span><strong class="eye-game-upgrade-name">Dot magnet level 1</strong><span class="eye-game-upgrade-description">Pull nearby dots for 8 seconds.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
+              <button type="button" data-upgrade="wallEater"><span class="eye-game-upgrade-card-top"><span class="eye-game-upgrade-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M12 41 30 16M9 17c10-8 23-8 32 1-8-1-14 1-19 6M28 14l4 6"/><path d="m9 17-2 5m34-4 1 5"/></svg></span></span><strong class="eye-game-upgrade-name">Wall chomper</strong><span class="eye-game-upgrade-description">Bite through inner walls and ghosts for 20 seconds.</span><span class="eye-game-upgrade-action">Choose upgrade</span></button>
             </div>
-            <button class="eye-game-upgrade-skip" type="button"><strong>Skip upgrade</strong><small>Keep your points and carry on</small></button>
+            <button class="eye-game-upgrade-skip" type="button"><strong>Skip upgrade</strong><small>Continue without an upgrade</small></button>
             <p class="eye-game-upgrade-hint" id="eye-game-upgrade-hint">Release your keys first · choose with WASD or arrow keys · press Space again to confirm</p>
           </div>
         </div>
@@ -1926,6 +1926,6 @@
     <script src="translations.js?v=20261016-expertise-5"></script>
     <script src="accessibility.js?v=20261016-16"></script>
     <script src="floating-cta.js?v=20261016-8"></script>
-    <script src="eye-game.js?v=20261017-104"></script>
+    <script src="eye-game.js?v=20261018-121"></script>
   </body>
 </html>

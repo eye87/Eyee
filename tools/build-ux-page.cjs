@@ -11,8 +11,8 @@ chrome = chrome.replace(/<template id="eye-game-template">[\s\S]*?<\/template>/,
 chrome = chrome.replace('<body>','<body class="ux-detail" data-floating-cta="ux">');
 chrome = chrome.replace(/<title>[\s\S]*?<\/title>/,'<title>UX &amp; UI design — Heldere interfaces, betere ervaringen | Eyee</title>');
 chrome = chrome.replace(/(<meta\s+name="description"\s+content=")[^"]*(")/,'$1Eyee verbindt gebruikersonderzoek, interactieontwerp en UI design. Voor heldere websites, webshops en applicaties. Bekijk ons werk en de UX Quickscan.$2');
-chrome = chrome.replace('</head>','<meta name="robots" content="noindex,follow"><link rel="stylesheet" href="ux-detail.css?v=20261018-2"><link rel="stylesheet" href="ux-motion.css?v=20261018-5"></head>');
-chrome = chrome.replaceAll('href="#contact"','href="#ux-contact"');
+chrome = chrome.replace('</head>','<meta name="robots" content="noindex,follow"><link rel="stylesheet" href="ux-detail.css?v=20261018-2"><link rel="stylesheet" href="ux-motion.css?v=20261018-5"><link rel="stylesheet" href="ux-project-story.css?v=20261018-9"></head>');
+chrome = chrome.replaceAll('href="#contact"','href="https://eye-entertainment.nl/contact/"');
 const footerStart = home.indexOf('<div class="footer-shell">');
 const scriptsStart = home.indexOf('<script src="script.js');
 let footer = home.slice(footerStart,scriptsStart);
@@ -32,6 +32,10 @@ const scripts = '<script src="ux-navigation.js?v=20261018-2"></script><script sr
 const reelStart = home.lastIndexOf('<section',home.indexOf('class="client-wall section client-strip"'));
 const reel = home.slice(reelStart,home.indexOf('</section>',reelStart)+10);
 let content = read('ux-content.html');
+content = content.replace(/^[ \t]*<section id="ux-contact"[\s\S]*?<\/section>/m,'').replaceAll('href="#ux-contact"','href="https://eye-entertainment.nl/contact/"');
+// Keep the Quickscan as a contextual secondary action, not a separate sales section.
+content = content.replace(/^[ \t]*<section class="ux-section ux-scan-section"[\s\S]*?<\/section>/m,'');
+content = content.replace(/(<h3 data-en="Improve what is already there">[\s\S]*?<\/p>)/,'$1<a class="hero-cta hero-cta-secondary ux-quickscan-cta" href="https://eye-entertainment.nl/gratis-ux-scan/"><b data-en="Explore the UX Quickscan">Ontdek de UX Quickscan</b><span aria-hidden="true"><img src="assets/arrow-right-white.svg" width="14" height="9" alt=""></span></a>');
 // Use the homepage hero itself, not a second approximation of its layout.
 const detailHero = content.slice(content.indexOf('<section'),content.indexOf('</section>')+10);
 const heroStart = home.indexOf('<section',home.indexOf('<main id="home">'));
@@ -47,10 +51,11 @@ hero = hero.replace(/<div class="hero-bottom">[\s\S]*?<\/div>\s*<\/div>/,`<div c
 content = content.replace(detailHero,hero+reel).replace(/<p class="ux-eyebrow"[^>]*>[\s\S]*?<\/p>/g,'');
 content = content.replace(/<dialog id="ux-reel-dialog"[\s\S]*?<\/dialog>/,'');
 content = content.replace('<span>UX &amp; UI design</span></nav>','<span aria-current="page">UX &amp; UI design</span></nav>');
-// Native disclosures keep the full service explanation available without a wall of text.
+// One real project provides a visual thread through three readable chapters.
 content = content.replace(/<div class="ux-service-columns">([\s\S]*?)<\/div>\s*<\/div><\/section>/,(_,items)=>{
- const disclosures=items.replace(/<article>[\s\S]*?<h3([^>]*)>([\s\S]*?)<\/h3>([\s\S]*?)<\/article>/g,'<details><summary><span$1>$2</span><span aria-hidden="true">+</span></summary><div class="ux-service-detail">$3</div></details>');
- return `<div class="ux-service-disclosures">${disclosures}</div></div></section>`;
+ let chapter=0;
+ const chapters=items.replace(/<article>[\s\S]*?<h3([^>]*)>([\s\S]*?)<\/h3>([\s\S]*?)<\/article>/g,(_,attributes,title,body)=>{const i=chapter++;return `<article class="ux-service-chapter${i===2?' ux-service-aside':''}" data-service-step="${i}"><div class="ux-service-copy"><h3${attributes}>${title}</h3>${body}</div></article>`;});
+ return `<div class="ux-project-story" data-active-step="0"><figure class="ux-project-stage" aria-hidden="true"><div class="ux-project-window"><img src="assets/dvn.webp" width="1559" height="1010" loading="lazy" alt=""></div><span class="ux-project-client-logo"></span></figure><figure class="ux-project-mobile"><div><img src="assets/dvn.webp" width="1559" height="1010" loading="lazy" alt="Website van Diabetesvereniging Nederland op tablet en mobiel"></div></figure><div class="ux-project-chapters">${chapters}</div></div></div></section>`;
 });
 const processIcons=[
  '<circle cx="27" cy="23" r="10"/><path d="M9 61v-6c0-11 8-18 18-18s18 7 18 18v6"/><circle cx="51" cy="43" r="15"/><path d="m62 54 12 13"/>',
@@ -63,11 +68,12 @@ content=content.replace(/<span class="ux-step-number">\d+<\/span>/g,()=>`<div cl
 content=content.replace(/<small data-en="[^"]*">[^<]*<\/small>/g,'');
 content=content.replace(/<a class="ux-case-image"([\s\S]*?)<span aria-hidden="true">↗<\/span>/g,'<a class="ux-case-image"$1<span class="case-link-arrow" aria-hidden="true"><img src="assets/arrow-right-white.svg" width="18" height="12" alt=""></span>');
 const benefitIcons=[processIcons[1],processIcons[2],processIcons[3]];
+content=content.replace(/(<div class="ux-cases">[\s\S]*?)(<\/div>\s*<\/div><\/section>)/,(_,cases,end)=>`${cases}<div class="ux-more-cases case-all-hover-area"><a class="case-all-card" href="https://eye-entertainment.nl/projecten/ui-ux-design/"><img class="case-all-brand-shape" src="assets/favicon.svg" alt="" aria-hidden="true"><span><strong><span data-en="More UX & UI projects">Meer UX &amp; UI projecten</span><img class="case-all-title-arrow" src="assets/arrow-right-white.svg" width="18" height="12" alt="" aria-hidden="true"></strong><span data-en="Discover more of our work.">Ontdek meer van ons werk.</span></span></a></div>${end}`);
 content=content.replace(/(<section id="over"[\s\S]*?<\/section>)/,block=>{
  const heading=block.match(/<h2[\s\S]*?<\/h2>/)[0];
- const portraits=block.match(/<div class="ux-portraits">[\s\S]*?<\/div>/)[0];
- const intro=block.match(/<p data-en="[^"]*">[\s\S]*?<\/p>/)[0];
- const quote=block.match(/<blockquote>[\s\S]*?<\/blockquote>/)[0].replace(/(<cite>[\s\S]*?<\/cite>)/,'<div class="ux-quote-attribution"><img class="ux-quote-logo" src="assets/dvn.svg" width="334" height="68" loading="lazy" alt="">$1</div>');
+ const portraits=block.match(/<div class="ux-portraits">[\s\S]*?<\/div>/)[0].replace(/<figcaption>Jeroen (?:Brugman|Buijs)<\/figcaption>/g,'<figcaption>Jeroen</figcaption>');
+ const intro='<p class="ux-section-intro" data-en="You work directly with Jeroen and Jeroen. We think along with you, design and coordinate with development. From the first question to the final design decision.">Je werkt rechtstreeks met Jeroen en Jeroen. We denken mee, ontwerpen en stemmen af met development. Van de eerste vraag tot de laatste ontwerpkeuze.</p>';
+ const quote='<blockquote><span class="ux-quote-mark" aria-hidden="true">“</span><p><span data-en="Besides a great result, working with Jeroen & Jeroen is also ">Naast een mooi eindresultaat is het ook nog eens </span><strong data-en="a lot of fun">heel gezellig om samen te werken</strong><span data-en="."> met Jeroen &amp; Jeroen.</span></p><cite class="ux-quote-attribution"><span class="ux-quote-name">Rianne Schouten</span><span class="ux-quote-company">Diabetesvereniging Nederland</span></cite></blockquote>';
  return `<section id="over" class="ux-section ux-people" aria-labelledby="ux-people-title"><div class="ux-wrap ux-team-editorial"><div class="ux-team-copy">${heading}${intro}${quote}<a class="ux-text-link" href="https://eye-entertainment.nl/over-ons/" data-en="Meet Eyee">Maak kennis met Eyee</a></div>${portraits}</div></section>`;
 });
 content=content.replace(/<div class="ux-scan-findings">[\s\S]*?<\/ul><\/div>/,()=>read('ux-scan-demo.html').replaceAll('role="tabpanel"','role="tabpanel" tabindex="0"'));
@@ -76,5 +82,5 @@ let benefitIndex=0;
 content=content.replace(/(<div class="ux-challenges">[\s\S]*?<\/section>)/,block=>block.replace(/<span aria-hidden="true">\d+<\/span>/g,()=>`<div class="ux-process-art ux-benefit-art" aria-hidden="true"><svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">${benefitIcons[benefitIndex++]}</svg></div>`));
 // Keep the homepage footer intact; only page-relative navigation is resolved.
 fs.appendFileSync(path.join(root,'ux-navigation.js'),'\n'+logoRuntime+'\n'+footerEyeRuntime.replace("reduced.addEventListener('change', resetEye);","document.addEventListener('eyeeaccessibilitychange', resetEye); matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', resetEye);"));
-fs.writeFileSync(path.join(root,'ui-ux-design.html'),links(chrome).replace('ux-detail.css?v=20261018-2','ux-detail.css?v=20261018-10').replace('ux-motion.css?v=20261018-5','ux-motion.css?v=20261018-12')+content+links(footer)+scripts.replace('ux-motion.js?v=20261018-3','ux-motion.js?v=20261018-11'));
+fs.writeFileSync(path.join(root,'ui-ux-design.html'),links(chrome).replace('ux-detail.css?v=20261018-2','ux-detail.css?v=20261018-12').replace('ux-motion.css?v=20261018-5','ux-motion.css?v=20261018-25')+content+links(footer)+scripts.replace('ux-motion.js?v=20261018-3','ux-motion.js?v=20261018-18'));
 console.log('Built ui-ux-design.html and ux-navigation.js');

@@ -19,7 +19,7 @@ const {chromium}=require('/Users/jbrugman/.cache/codex-runtimes/codex-primary-ru
    assert.equal(await page.locator('#ux-demo-find-panel').isVisible(),true);
    assert.equal(await page.locator('.ux-team-editorial figure').count(),2);
    assert.equal(await page.locator('.ux-team-editorial blockquote').count(),1);
-   assert.equal(await page.locator('section#ux-contact').count(),1);
+   assert.equal(await page.locator('section#ux-contact').count(),0);
    assert.equal(await page.locator('.footer .footer-conversation-copy').count(),1);
    assert.equal(await page.locator('.ux-demo-caption').count(),0);
    assert.equal(await page.locator('.ux-scan > div:first-child > .ux-section-intro').evaluate(e=>getComputedStyle(e).fontSize),await page.locator('.ux-process-heading .ux-section-intro').evaluate(e=>getComputedStyle(e).fontSize));

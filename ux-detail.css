@@ -1,5 +1,7 @@
 /* Expertise pages inherit Eyee's typography, palette and navigation. */
-body.ux-detail {background:#fff; color:var(--color-navy);}
+body.ux-detail {background:var(--page-bg,#000d49); color:var(--color-navy);}
+/* Keep Safari's elastic overscroll from exposing a band above the hero. */
+html:has(> body.ux-detail),body.ux-detail {overscroll-behavior-y:none;}
 .ux-detail #ux-main {overflow:clip;}
 .ux-wrap {width:min(1280px,calc(100% - 96px)); margin-inline:auto;}
 .ux-detail :where(main) h1,.ux-detail :where(main) h2,.ux-detail :where(main) h3 {font-family:"GT Walsheim Pro",Avenir,Arial,sans-serif; font-weight:700; letter-spacing:-.035em;}
