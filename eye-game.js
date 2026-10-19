@@ -52,7 +52,7 @@
     gamePromise = new Promise((resolve, reject) => {
       if (window.EyeeGame?.createEyeGame) { resolve(window.EyeeGame); return; }
       gameScript = document.createElement('script');
-      gameScript.src = 'eye-game-play.js?v=20261019-124';
+      gameScript.src = 'eye-game-play.js?v=20261019-125';
       const timeout = setTimeout(() => reject(new Error('Could not load game code')), 8000);
       gameScript.onload = () => {
         clearTimeout(timeout);

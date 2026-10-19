@@ -306,8 +306,8 @@ html:is([data-a11y-dark],[data-a11y-contrast]) .ux-detail .ux-work {background:#
 .ux-service-chapter:nth-child(2) .ux-service-copy {order:2;}
 .ux-service-copy {max-width:480px;}
 .ux-service-copy .ux-quickscan-cta {margin-top:24px; margin-right:24px; color:var(--color-navy); text-decoration-color:var(--color-blue);}
-.ux-service-copy .ux-quickscan-cta b {font-weight:500;}
-.ux-service-copy .ux-quickscan-cta span img {filter:brightness(0) saturate(100%) invert(31%) sepia(94%) saturate(2870%) hue-rotate(225deg);}
+.ux-service-copy .ux-quickscan-cta b {font-weight:inherit;}
+.ux-service-copy .ux-quickscan-cta span img {filter:none;}
 .ux-service-copy .ux-quickscan-cta:is(:hover,:focus-visible) {color:var(--color-blue);}
 .ux-detail #ux-main .ux-service-copy h3 {font-size:clamp(28px,2.7vw,38px); line-height:1.12; letter-spacing:-.025em; margin:0 0 24px;}
 .ux-service-copy p {font-size:18px; line-height:1.65;}

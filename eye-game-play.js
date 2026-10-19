@@ -836,11 +836,20 @@ function createEyeGame(onClose) {
     }
     boss.y=bossStage2Y(elapsed);
   }
+  function escapeHazardKillsGhost(ghost) {
+    if(ghost.dead) return false;
+    const touchesLava=ghost.y+.6>=escape.lavaY;
+    const touchesBoss=Math.abs(ghost.x-doorX())<=6.8 && ghost.y+.5>=escapeBossTopY(escape.lavaY);
+    if(!touchesLava && !touchesBoss) return false;
+    ghost.dead=true;escape.shards.push({x:ghost.x,y:ghost.y,start:performance.now()});
+    return true;
+  }
   function stepEscape() {
     if(!escape) return;
     const now=Date.now(),age=now-escape.startedAt;
     if(phase==='launch') {
       if(now-escape.launchAt<boardingMs) {escape.previousLavaY=escape.lavaY;escape.lavaY=Math.max(5.5,escape.lavaY-.65);}
+      escape.ghosts.forEach(escapeHazardKillsGhost);
       if(!room && now-escape.launchAt>=boardingMs+flightMs) finishEscape();
       return;
     }
@@ -883,12 +892,7 @@ function createEyeGame(onClose) {
         ghost.previousX=ghost.x;
         ghost.x=Math.max(2,Math.min(cols-3,ghost.homeX+Math.sin(now/1050+ghost.phase)*3.2));
       }
-      const touchesLava=ghost.y+.6>=escape.lavaY;
-      const touchesBoss=Math.abs(ghost.x-doorX())<=6.8 && ghost.y+.5>=escapeBossTopY(escape.lavaY);
-      if(touchesLava || touchesBoss) {
-        ghost.dead=true;escape.shards.push({x:ghost.x,y:ghost.y,start:performance.now()});
-        continue;
-      }
+      if(escapeHazardKillsGhost(ghost)) continue;
       if(now>=ghostPausedUntil && Math.abs(ghost.x-player.x)<.8 && Math.abs(ghost.y-player.y)<.8) {
         if(wallEaterActive()) {ghost.dead=true;escape.shards.push({x:ghost.x,y:ghost.y,start:performance.now()});}
         else {loseLife(true);break;}

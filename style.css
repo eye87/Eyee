@@ -7762,3 +7762,43 @@ h2,
   opacity: 0;
 }
 .eye-egg-bloom.is-active { opacity: var(--eye-bloom-opacity, 1); }
+
+/* Shared action typography and horizontal breathing room across both pages. */
+:root {
+  --action-padding-inline: 28px;
+  --action-font-family: Avenir, Arial, Helvetica, sans-serif;
+  --action-font-weight: 700;
+  --action-secondary-weight: 500;
+}
+.hero-actions .hero-cta-primary,
+.cases .hero-cta-primary,
+.hero-cta-primary,
+.footer .footer-start,
+.floating-cta .floating-cta-link,
+.header .header-actions .contact-link,
+.ux-detail #ux-main .ux-button {
+  padding-inline: var(--action-padding-inline);
+  font-family: var(--action-font-family);
+  font-weight: var(--action-font-weight);
+}
+.hero-cta-primary b,
+.floating-cta-link b,
+.ux-button b {font-weight:inherit;}
+.header .header-actions .contact-link,
+.header .header-actions .contact-link:is(:hover,:focus-visible) {width:auto;}
+.hero-cta-secondary,
+.hero-actions .hero-cta-secondary,
+.team-blue .team-cta,
+.review-google-link,
+.faq-intro > .faq-contact-link,
+.faq-contact-link,
+.ux-detail #ux-main .ux-text-link {
+  font-family:var(--action-font-family);
+  font-weight:var(--action-secondary-weight);
+  font-size:16px;
+  line-height:1.4;
+  text-decoration:underline;
+  text-decoration-color:currentColor;
+  text-decoration-thickness:1px;
+  text-underline-offset:5px;
+}
