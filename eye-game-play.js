@@ -14,7 +14,7 @@ function createEyeGame(onClose) {
   const leaderboardNode = $('.eye-game-leaderboard'), cooldownNode = $('.eye-game-ghost-cooldown'), magnetNode = $('.eye-game-magnet-timer');
   const progressNode = $('#eye-game-progress-list');
   const directions = [{x:1,y:0,angle:0},{x:0,y:1,angle:Math.PI/2},{x:-1,y:0,angle:Math.PI},{x:0,y:-1,angle:-Math.PI/2}];
-  const key = (x,y) => `${x},${y}`, size = 28, stepDuration = 128, bonusVisibleMs = 10000, finalLevel = 5, bossTransitionMs = 3200, bossEntryMs = 1300, bossSafetyMs = 2600;
+  const key = (x,y) => `${x},${y}`, size = 28, stepDuration = 128, bonusVisibleMs = 10000, finalLevel = 5, bossTransitionMs = 3200, bossEntryMs = 1300, bossSafetyMs = 2600, boardingMs = 1700, flightMs = 5200;
   let cols, rows, level, walls, dots, player, previousPlayer, ghosts, previousGhosts, wanted, moving;
   let score, earnedScore, lives, state, tick, hasInput, invulnerableUntil, ghostStartAt, ghostPausedUntil, magnetLevel, magnetUntil, blasterLevel, wallEaterLevel, wallEaterUntil, beamUntil, beamEnd;
   let nextUpgradeLevel, pendingLevel, upgradePending = false, upgradeOpenedAt = 0, magnetRemainingAtUpgrade = 0, wallEaterRemainingAtUpgrade = 0, rageRemainingAtUpgrade = 0, bonusRemainingAtUpgrade = 0, frame = 0, lastFrame = 0, elapsed = 0, levelTimer = 0, descentSnapshot = null, nextPeek = null, hitTimer = 0, hitAt = 0, hitPosition = null;
@@ -75,6 +75,7 @@ function createEyeGame(onClose) {
   }
   function makeWalls() { walls=buildWalls(cols,rows); }
   const doorX = () => Math.floor(cols/2);
+  const escapeBossTopY = lavaY => lavaY-5.9;
   function renderProgress() {
     const count=finalLevel;
     const layers=['The Surface','Shadow Zone','The Rift','Sea of Fire','The Core'];
@@ -149,27 +150,34 @@ function createEyeGame(onClose) {
     boss=null;bossProjectiles=[];ghosts=[];previousGhosts=[];phase='escape';state=upgradePending?'upgrade':'playing';
     cols=27;rows=escapeRows;resizeBoard();canvas.setAttribute('aria-label','Escape through five rising levels. Avoid the lava and reach the rocket.');
     player=previousPlayer={x:doorX(),y:escapeHeight-5};moving=wanted=directions[3];hasInput=false;
-    escape={startedAt,runAt:0,lavaY:escapeHeight+1,previousLavaY:escapeHeight+1,cameraY:escapeHeight-escapeRows,lastDrawAt:0,obstacles:buildEscapeObstacles(),ghosts:buildEscapeGhosts(),shots:[],shards:[],shotCount:0,lastShotAt:0,launchAt:0,lastStratum:5};
+    escape={startedAt,runAt:0,lavaY:escapeHeight+7,previousLavaY:escapeHeight+7,cameraY:escapeHeight-escapeRows,lastDrawAt:0,obstacles:buildEscapeObstacles(),ghosts:buildEscapeGhosts(),shots:[],shards:[],shotCount:0,lastShotAt:0,launchAt:0,launchX:null,launchY:null,lastStratum:5};
     invulnerableUntil=startedAt+3300;magnetUntil=0;updateMagnetTimer();boardWrap.classList.add('is-final-boss');victoryNode.hidden=true;
-    testBossButton.hidden=testingFinalBoss;
+    if(testingFinalBoss) {testBossButton.hidden=false;testBossButton.textContent='Test rocket';testBossButton.title='Jump to the rocket finale (test run)';}
     updateStatus('The lava is bubbling... press ↑ or W (or swipe up) to start the climb!');renderProgress();checkUpgrade();
   }
   function finishEscape() {
     if(phase==='won') return;
-    phase='won';state='won';if(escape) escape.completed=true;updateStatus('You made it back to the surface. The rocket takes you to safety!');
+    phase='won';state='won';if(escape) escape.completed=true;updateStatus('Through the clouds. To be continued.');
     victoryNode.hidden=false;victoryNode.querySelector('button').focus({preventScroll:true});renderProgress();
   }
   function buildEscapeObstacles() {
     const blocks=new Set();
+    const rocketX=doorX();
+    for(let x=rocketX-3;x<=rocketX+3;x++) blocks.add(key(x,4));
+    for(let x=rocketX-1;x<=rocketX+1;x++) blocks.add(key(x,5));
     [4,3,2,1].forEach((layer,index)=>{
       const y=layer*escapeLayerHeight;
       const gap=[14,8,18,11][index];
       for(let x=1;x<cols-1;x++) if(Math.abs(x-gap)>2) blocks.add(key(x,y));
     });
-    for(let y=9;y<escapeHeight-7;y+=11) {
+    for(let y=9;y<escapeHeight-7;y+=8) {
       if(y%escapeLayerHeight===0) continue;
-      const start=3+(Math.floor(y/9)*7)%(cols-10);
-      for(let x=start;x<start+3;x++) blocks.add(key(x,y));
+      const row=Math.floor((y-9)/8),start=3+(row*7)%(cols-10);
+      for(let x=start;x<start+3+row%2;x++) blocks.add(key(x,y));
+      if(row%3===1 && (y+3)%escapeLayerHeight!==0) {
+        const second=3+(row*11+8)%(cols-7);
+        for(let x=second;x<second+2;x++) blocks.add(key(x,y+3));
+      }
     }
     return blocks;
   }
@@ -457,7 +465,10 @@ function createEyeGame(onClose) {
     earnedScore=Number(data.earnedScore??data.score);
     const self=data.players.find(member=>member.self);
     if((data.phase==='escape'||data.phase==='launch'||data.phase==='won') && !escape) startEscape(Date.now()-Math.max(0,Number(data.escapeElapsedMs)||0),false);
-    if(escape && data.phase==='launch') {phase='launch';escape.launchAt=Date.now()-Math.max(0,Number(data.launchElapsedMs)||0);}
+    if(escape && data.phase==='launch') {
+      if(phase!=='launch') {escape.launchX=player.x;escape.launchY=player.y;}
+      phase='launch';escape.launchAt=Date.now()-Math.max(0,Number(data.launchElapsedMs)||0);
+    }
     if(escape && data.phase==='won' && phase!=='won') finishEscape();
     if (self?.blasterLevel!=null) blasterLevel=Number(self.blasterLevel)+pendingPurchases.filter(purchase=>purchase.type==='blaster').length;
     if (self?.magnetLevel!=null) magnetLevel=Math.min(4,Number(self.magnetLevel)+pendingPurchases.filter(purchase=>purchase.type==='magnet').length);
@@ -653,6 +664,7 @@ function createEyeGame(onClose) {
   function loseLife(projectileHit=false) {
     if (state!=='playing' || Date.now()<invulnerableUntil || !projectileHit && (Date.now()<ghostPausedUntil || !(ghosts.some(g=>!g.dead && g.x===player.x && g.y===player.y) || phase==='boss' && boss?.x===player.x && boss?.y===player.y))) return;
     lives--;state='hit';hitAt=performance.now();hitPosition={...player};
+    if(escape) {escape.previousLavaY=escape.lavaY;escape.frozenBossRise=Math.min(1,Math.max(0,(Date.now()-escape.startedAt-800)/2300));}
     bossProjectiles=[];
     boardWrap.classList.remove('is-hit');void boardWrap.offsetWidth;boardWrap.classList.add('is-hit');
     updateStatus(lives?phase==='escape'?'The heat caught you. Get moving!':'Ouch! You still have another chance.':phase==='escape'?'The lava caught you. Try again?':phase==='boss'?`${level===finalLevel?'The final boss':'The mini-boss'} won. Try again?`:'The ghosts won. Try again?');
@@ -666,7 +678,7 @@ function createEyeGame(onClose) {
       if(escape) {
         const y=Math.max(3,Math.min(escapeHeight-5,Math.floor(escape.lavaY)-6));
         let x=doorX();while(escape.obstacles.has(key(x,y)) && x<cols-2) x++;
-        player=previousPlayer={x,y};escape.lavaY=Math.max(escape.lavaY,y+9);wanted=moving=directions[3];
+        player=previousPlayer={x,y};escape.lavaY=Math.max(escape.lavaY,y+9);escape.previousLavaY=escape.lavaY;escape.frozenBossRise=null;wanted=moving=directions[3];
       }
       else player=previousPlayer={x:1,y:room?.slot===2?rows-2:1};
       ghosts.forEach(g=>{if(g.minion && g.dead) return;g.x=g.spawn.x;g.y=g.spawn.y;g.hp=g.maxHp;g.dead=false;g.respawnAt=0;g.spawnedAt=0;});
@@ -827,11 +839,15 @@ function createEyeGame(onClose) {
   function stepEscape() {
     if(!escape) return;
     const now=Date.now(),age=now-escape.startedAt;
-    if(phase==='launch') {if(!room && now-escape.launchAt>=2200) finishEscape();return;}
+    if(phase==='launch') {
+      if(now-escape.launchAt<boardingMs) {escape.previousLavaY=escape.lavaY;escape.lavaY=Math.max(5.5,escape.lavaY-.65);}
+      if(!room && now-escape.launchAt>=boardingMs+flightMs) finishEscape();
+      return;
+    }
     if(age<2400 || !hasInput) return;
     if(!escape.runAt) {escape.runAt=now;escape.lastShotAt=now;updateStatus('Climb through all five levels. Reach the rocket before the lava!');}
     escape.previousLavaY=escape.lavaY;
-    escape.lavaY=Math.max(3,Math.min(escape.lavaY-.42,player.y+10));
+    escape.lavaY=Math.max(5.5,Math.min(escape.lavaY-.42,player.y+10));
     previousPlayer={...player};tick++;
     const clear=(x,y)=>x>0 && x<cols-1 && y>0 && y<escapeHeight-1 && !escape.obstacles.has(key(x,y));
     if(clear(player.x+wanted.x,player.y+wanted.y)) moving=wanted;
@@ -839,7 +855,8 @@ function createEyeGame(onClose) {
     const stratum=Math.max(1,Math.min(finalLevel,Math.floor(player.y/escapeLayerHeight)+1));
     if(stratum!==escape.lastStratum) {escape.lastStratum=stratum;renderProgress();updateStatus(`Level ${stratum}. Keep climbing — the lava is still rising!`);}
     if(player.y<=3 && Math.abs(player.x-doorX())<=2) {
-      phase='launch';escape.launchAt=now;updateStatus('Rocket boarded! Leaving the collapsing surface behind.');
+      phase='launch';escape.launchAt=now;escape.launchX=player.x;escape.launchY=player.y;
+      updateStatus('Hop aboard! The rocket is getting ready to launch.');
       if(room) void syncRoom();return;
     }
     if(now-escape.lastShotAt>1450) {
@@ -847,22 +864,38 @@ function createEyeGame(onClose) {
       escape.shots.push({x:Math.max(2,Math.min(cols-3,player.x+offset)),y:escape.lavaY-2,previousY:escape.lavaY-2});escape.lastShotAt=now;
     }
     for(let i=escape.shots.length-1;i>=0;i--) {
-      const shot=escape.shots[i];shot.previousY=shot.y;shot.y-=.9;
-      const cell=key(shot.x,Math.round(shot.y));
-      if(escape.obstacles.delete(cell)) {escape.shards.push({x:shot.x,y:Math.round(shot.y),start:performance.now()});escape.shots.splice(i,1);continue;}
-      if(Math.abs(shot.x-player.x)<.8 && Math.abs(shot.y-player.y)<.9) {escape.shots.splice(i,1);loseLife(true);break;}
+      const shot=escape.shots[i];shot.previousY=shot.y;shot.y-=2.35;
+      let blocked=false,hitPlayer=false;
+      for(let y=Math.round(shot.previousY);y>=Math.round(shot.y);y--) {
+        if(Math.abs(shot.x-player.x)<.8 && y===player.y) {hitPlayer=true;break;}
+        const cell=key(shot.x,y);
+        if(!escape.obstacles.has(cell)) continue;
+        if(y>5) escape.obstacles.delete(cell);
+        escape.shards.push({x:shot.x,y,start:performance.now()});escape.shots.splice(i,1);blocked=true;break;
+      }
+      if(hitPlayer) {escape.shots.splice(i,1);loseLife(true);break;}
+      if(blocked) continue;
       if(shot.y<0) {escape.shards.push({x:shot.x,y:0,start:performance.now()});escape.shots.splice(i,1);}
     }
-    if(now>=ghostPausedUntil) for(const ghost of escape.ghosts) {
+    for(const ghost of escape.ghosts) {
       if(ghost.dead) continue;
-      ghost.previousX=ghost.x;
-      ghost.x=Math.max(2,Math.min(cols-3,ghost.homeX+Math.sin(now/1050+ghost.phase)*3.2));
-      if(Math.abs(ghost.x-player.x)<.8 && Math.abs(ghost.y-player.y)<.8) {
+      if(now>=ghostPausedUntil) {
+        ghost.previousX=ghost.x;
+        ghost.x=Math.max(2,Math.min(cols-3,ghost.homeX+Math.sin(now/1050+ghost.phase)*3.2));
+      }
+      const touchesLava=ghost.y+.6>=escape.lavaY;
+      const touchesBoss=Math.abs(ghost.x-doorX())<=6.8 && ghost.y+.5>=escapeBossTopY(escape.lavaY);
+      if(touchesLava || touchesBoss) {
+        ghost.dead=true;escape.shards.push({x:ghost.x,y:ghost.y,start:performance.now()});
+        continue;
+      }
+      if(now>=ghostPausedUntil && Math.abs(ghost.x-player.x)<.8 && Math.abs(ghost.y-player.y)<.8) {
         if(wallEaterActive()) {ghost.dead=true;escape.shards.push({x:ghost.x,y:ghost.y,start:performance.now()});}
         else {loseLife(true);break;}
       }
     }
-    if(player.y+.6>=escape.lavaY) loseLife(true);
+    if(Math.abs(player.x-doorX())<=6.8 && player.y+.5>=escapeBossTopY(escape.lavaY)) loseLife(true);
+    else if(player.y+.6>=escape.lavaY) loseLife(true);
   }
   function stepBossProjectiles() {
     if(phase!=='boss' || !boss || bossStage!==1) return;
@@ -977,10 +1010,55 @@ function createEyeGame(onClose) {
     }
     ctx.fillStyle=finalArena?'#5c1121':'#341568';roundedRect(-7,7,14,5,3);
   }
+  const eyeMarkPath=new Path2D('M9.51439 10.8486C13.2551 7.12958 17.5127 5.4933 22.5822 6.22587C26.7355 6.82609 30.0108 8.91113 32.4223 12.3533C32.749 12.8196 32.5829 13.227 31.9892 13.418C30.5887 13.8686 29.6257 14.8354 28.8642 16.0403C27.8134 17.7027 27.5132 19.5148 28.0193 21.4101C28.6881 23.9138 30.2279 25.6642 32.778 26.4289C33.4064 26.6173 33.5839 26.9881 33.2454 27.5502C31.8733 29.8279 30.118 31.7046 27.7534 33.0201C24.336 34.9211 20.72 35.3688 16.9498 34.4121C13.9233 33.6442 11.3914 32.0325 9.37889 29.5688C6.7812 26.3884 5.79259 22.7843 6.13658 18.7898C6.32133 16.6434 7.01391 14.6473 8.17219 12.8304C8.64339 12.0914 9.15447 11.3779 9.51439 10.8486Z');
+  function drawChomper(x,y,radius,angle,now,color='#F86B00') {
+    const scale=radius/15;
+    ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.scale(scale,scale);ctx.translate(-20,-20);
+    ctx.fillStyle=color;ctx.fill(eyeMarkPath);ctx.restore();
+  }
+  function drawRocket(x,y,scale,now,thrust=0,occupied=false) {
+    ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
+    ctx.shadowColor='#b8e9ff';ctx.shadowBlur=16;
+    ctx.fillStyle='#eef8ff';ctx.beginPath();ctx.moveTo(0,-37);ctx.quadraticCurveTo(26,-18,19,20);ctx.lineTo(-19,20);ctx.quadraticCurveTo(-26,-18,0,-37);ctx.fill();
+    ctx.shadowBlur=0;ctx.strokeStyle='#b8e9ff';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#F86B00';ctx.beginPath();ctx.moveTo(-19,8);ctx.lineTo(-31,27);ctx.lineTo(-16,21);ctx.moveTo(19,8);ctx.lineTo(31,27);ctx.lineTo(16,21);ctx.fill();
+    ctx.fillStyle='#183983';ctx.beginPath();ctx.arc(0,-7,11,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#b8e9ff';ctx.lineWidth=2;ctx.stroke();
+    if(occupied) drawChomper(0,-7,6.5,0,now);
+    if(thrust>0) {ctx.fillStyle='#ffad4d';ctx.beginPath();ctx.moveTo(-8,20);ctx.lineTo(0,20+thrust*(17+Math.sin(now/90)*6));ctx.lineTo(8,20);ctx.fill();}
+    ctx.restore();
+  }
+  function drawCloud(x,y,scale,alpha) {
+    ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle='#fff';ctx.translate(x,y);ctx.scale(scale,scale);
+    ctx.beginPath();ctx.ellipse(-25,6,31,14,0,0,Math.PI*2);ctx.ellipse(2,-4,27,21,0,0,Math.PI*2);ctx.ellipse(30,7,31,15,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  function drawLaunchScene(width,height,now) {
+    const elapsed=phase==='won'?flightMs:Math.max(0,Date.now()-escape.launchAt-boardingMs),t=Math.min(1,elapsed/flightMs);
+    const sky=ctx.createLinearGradient(0,0,0,height);
+    sky.addColorStop(0,'#82b7e9');sky.addColorStop(.5,'#3979bb');sky.addColorStop(1,'#102c6c');
+    ctx.fillStyle=sky;ctx.fillRect(0,0,width,height);
+    ctx.fillStyle=`rgba(255,255,255,${.13*t})`;ctx.fillRect(0,0,width,height);
+    for(let i=0;i<13;i++) {
+      const x=(i*181+65)%width,y=((i*127+height*.3+t*height*2.5)%(height*1.65))-height*.35;
+      drawCloud(x,y,.7+(i%4)*.28,.23+(i%3)*.12);
+    }
+    const lift=Math.min(1,t/.88),ease=1-(1-lift)*(1-lift);
+    const rocketY=height*.79-ease*height*.82-Math.max(0,(t-.88)/.12)**2*height*.27;
+    drawRocket(width/2+Math.sin(t*Math.PI)*width*.025,rocketY,2.15,now,1.35,true);
+    for(let i=0;i<5;i++) {
+      const x=(i*239+width*.13)%width,y=((i*173+height*.7+t*height*2.8)%(height*1.8))-height*.35;
+      drawCloud(x,y,1.05+(i%3)*.36,.22+(i%2)*.1);
+    }
+    if(t<.12) {ctx.fillStyle=`rgba(244,250,255,${1-t/.12})`;ctx.fillRect(0,0,width,height);}
+  }
   function drawEscape(progress=1) {
     const width=cols*size,height=rows*size,now=performance.now(),age=Date.now()-escape.startedAt;
-    const playerY=previousPlayer.y+(player.y-previousPlayer.y)*progress;
-    const target=Math.max(0,Math.min(escapeHeight-rows,playerY-rows*.53));
+    const boarding=phase==='launch' && Date.now()-escape.launchAt<boardingMs;
+    const boardingProgress=boarding?Math.min(1,Math.max(0,(Date.now()-escape.launchAt)/boardingMs)):0;
+    if(phase==='won'||phase==='launch'&&!boarding) {drawLaunchScene(width,height,now);return;}
+    const motion=state==='playing'?progress:1;
+    const playerY=previousPlayer.y+(player.y-previousPlayer.y)*motion;
+    const target=Math.max(0,Math.min(escapeHeight-rows,playerY-rows*.35));
     const frameMs=Math.min(50,Math.max(0,now-(escape.lastDrawAt||now)));
     escape.lastDrawAt=now;
     escape.cameraY+=(target-escape.cameraY)*(1-Math.exp(-frameMs/145));
@@ -1010,42 +1088,52 @@ function createEyeGame(onClose) {
       ctx.fillStyle=y%escapeLayerHeight===0?'#46639b':'#3d527e';roundedRect(x*size+1,py+1,size-2,size-2,5);
       ctx.fillStyle='rgba(184,233,255,.15)';ctx.fillRect(x*size+5,py+5,size-10,2);
     });
-    const rocketX=doorX()*size+size/2;
     if(escape.cameraY<7) {
-      const lift=phase==='launch'?Math.min(1,(Date.now()-escape.launchAt)/2100):0;
-      const ry=screenY(2)-lift*height*.95;
-      ctx.save();ctx.translate(rocketX,ry);ctx.shadowColor='#b8e9ff';ctx.shadowBlur=20;
-      ctx.fillStyle='#eef8ff';ctx.beginPath();ctx.moveTo(0,-35);ctx.quadraticCurveTo(25,-16,19,20);ctx.lineTo(-19,20);ctx.quadraticCurveTo(-25,-16,0,-35);ctx.fill();
-      ctx.fillStyle='#3357e8';ctx.beginPath();ctx.arc(0,-6,8,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#f86b00';ctx.beginPath();ctx.moveTo(-19,9);ctx.lineTo(-31,25);ctx.lineTo(-17,22);ctx.moveTo(19,9);ctx.lineTo(31,25);ctx.lineTo(17,22);ctx.fill();
-      ctx.fillStyle='#ffad4d';ctx.beginPath();ctx.moveTo(-8,22);ctx.lineTo(0,22+18+Math.sin(now/90)*8+lift*38);ctx.lineTo(8,22);ctx.fill();ctx.restore();
+      const rocketX=doorX()*size+size/2,rocketY=screenY(3);
+      if(boardingProgress>.54) {
+        const smoke=(boardingProgress-.54)/.46;
+        ctx.save();ctx.fillStyle=`rgba(226,241,255,${.58-.16*smoke})`;
+        for(let i=0;i<12;i++) {
+          const offset=i-5.5;
+          const puffX=rocketX+offset*(6+smoke*11)+Math.sin(now/240+i)*4;
+          const puffY=rocketY+25+(i%3)*8+Math.abs(offset)*smoke*5+Math.sin(now/180+i*1.6)*3;
+          ctx.beginPath();ctx.arc(puffX,puffY,9+smoke*(7+i%4*3),0,Math.PI*2);ctx.fill();
+        }
+        ctx.restore();
+      }
+      const lift=boardingProgress>.82?((boardingProgress-.82)/.18)**2*height*.48:0;
+      drawRocket(rocketX,rocketY-lift,1,now,boardingProgress>.7?Math.min(1,(boardingProgress-.7)/.3):0,boardingProgress>=.72);
     }
-    const lavaY=escape.previousLavaY+(escape.lavaY-escape.previousLavaY)*progress;
+    const lavaY=escape.previousLavaY+(escape.lavaY-escape.previousLavaY)*motion;
     const lavaTop=screenY(lavaY)+Math.sin(now/200)*3;
-    const lava=ctx.createLinearGradient(0,lavaTop,0,height);lava.addColorStop(0,'#ffbd47');lava.addColorStop(.16,'#f36425');lava.addColorStop(1,'#8b1f28');
-    ctx.fillStyle=lava;ctx.fillRect(0,lavaTop,width,height-lavaTop);
-    const bossRise=Math.min(1,Math.max(0,(age-800)/2300));
+    const bossRise=escape.frozenBossRise??Math.min(1,Math.max(0,(age-800)/2300));
     if(bossRise>0) {
-      const bossScale=(10.5+Math.min(2,age/14000))*bossRise;
-      const by=lavaTop+155-265*bossRise+Math.sin(now/270)*4;
-      ctx.save();ctx.beginPath();ctx.rect(0,0,width,Math.max(0,lavaTop+12));ctx.clip();
-      ctx.globalAlpha=bossRise;ctx.translate(width/2,by);ctx.scale(bossScale,bossScale);ctx.shadowColor='#ff5d32';ctx.shadowBlur=34;
+      const bossScale=7.5;
+      const bossTopY=boarding?Math.max(6.5,escapeBossTopY(lavaY)):escapeBossTopY(lavaY);
+      const by=screenY(bossTopY)+27*bossScale+(1-bossRise)*150;
+      ctx.save();ctx.globalAlpha=bossRise;ctx.translate(width/2,by);ctx.scale(bossScale,bossScale);ctx.shadowColor='#ff5d32';ctx.shadowBlur=34;
       drawBossBody(true);
       ctx.restore();
     }
+    const lava=ctx.createLinearGradient(0,lavaTop,0,height);lava.addColorStop(0,'#ffbd47');lava.addColorStop(.16,'#f36425');lava.addColorStop(1,'#8b1f28');
+    ctx.fillStyle=lava;ctx.fillRect(0,lavaTop,width,height-lavaTop);
+    ctx.save();ctx.strokeStyle='rgba(255,189,103,.9)';ctx.lineWidth=3;ctx.shadowColor='#ff7535';ctx.shadowBlur=11;
+    ctx.beginPath();ctx.moveTo(0,lavaTop+2);
+    for(let x=12;x<=width+12;x+=12) ctx.lineTo(x,lavaTop+2+Math.sin(x/28+now/250)*2);
+    ctx.stroke();ctx.restore();
     ctx.fillStyle='#ffdc75';for(let i=0;i<19;i++) {
       const bx=(i*103+47)%width,by=lavaTop+6+Math.sin(now/370+i*2)*8;
       ctx.beginPath();ctx.arc(bx,by,2+(i%4),0,Math.PI*2);ctx.fill();
     }
     escape.shots.forEach(shot=>{
-      const sy=screenY(shot.previousY+(shot.y-shot.previousY)*progress);ctx.save();ctx.shadowColor='#ff7b35';ctx.shadowBlur=22;
+      const sy=screenY(shot.previousY+(shot.y-shot.previousY)*motion);ctx.save();ctx.shadowColor='#ff7b35';ctx.shadowBlur=22;
       ctx.fillStyle='#ffbd64';ctx.beginPath();ctx.arc(shot.x*size+size/2,sy,8,0,Math.PI*2);ctx.fill();ctx.restore();
     });
     if(Date.now()>=ghostPausedUntil) escape.ghosts.forEach(ghost=>{
       if(ghost.dead) return;
       const gy=screenY(ghost.y)+size/2;
       if(gy<-size || gy>Math.min(height+size,lavaTop-7)) return;
-      const gx=(ghost.previousX+(ghost.x-ghost.previousX)*progress)*size+size/2;
+      const gx=(ghost.previousX+(ghost.x-ghost.previousX)*motion)*size+size/2;
       ctx.save();ctx.translate(gx,gy);ctx.shadowColor=ghost.color;ctx.shadowBlur=12;
       ctx.fillStyle=ghost.color;ctx.beginPath();ctx.arc(0,-2,11,Math.PI,0);ctx.lineTo(11,10);ctx.lineTo(6,6);ctx.lineTo(0,10);ctx.lineTo(-6,6);ctx.lineTo(-11,10);ctx.closePath();ctx.fill();
       ctx.shadowBlur=0;ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(-3,-2,1.8,0,Math.PI*2);ctx.arc(3,-2,1.8,0,Math.PI*2);ctx.fill();ctx.restore();
@@ -1061,19 +1149,21 @@ function createEyeGame(onClose) {
     }
     if(room && remotePlayer) {
       const rx=remotePlayer.x*size+size/2,ry=screenY(remotePlayer.y)+size/2;
-      if(ry>-size && ry<height+size) {ctx.fillStyle='#b8e9ff';ctx.beginPath();ctx.arc(rx,ry,11,0,Math.PI*2);ctx.fill();ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(rx+10,ry,7.5,0,Math.PI*2);ctx.fill();}
+      if(ry>-size && ry<height+size) drawChomper(rx,ry,11,0,now,'#b8e9ff');
     }
-    const px=(previousPlayer.x+(player.x-previousPlayer.x)*progress)*size+size/2;
-    const py=screenY(previousPlayer.y+(player.y-previousPlayer.y)*progress)+size/2;
+    const hop=boarding?Math.min(1,boardingProgress/.72):0;
+    const hopEase=hop*hop*(3-2*hop);
+    const px=(boarding?(escape.launchX??player.x)*(1-hopEase)+doorX()*hopEase:previousPlayer.x+(player.x-previousPlayer.x)*motion)*size+size/2;
+    const py=boarding?screenY((escape.launchY??player.y)*(1-hopEase)+2.75*hopEase-Math.sin(Math.PI*hop)*.9)+size/2:screenY(previousPlayer.y+(player.y-previousPlayer.y)*motion)+size/2;
     if(beamEnd && now<beamUntil) {
       ctx.save();ctx.strokeStyle='#b8e9ff';ctx.lineWidth=4;ctx.lineCap='round';ctx.shadowColor='#b8e9ff';ctx.shadowBlur=12;
       ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(beamEnd.x*size+size/2,screenY(beamEnd.y)+size/2);ctx.stroke();ctx.restore();
     }
-    if(phase!=='launch' && !escape.completed) {
+    if(!escape.completed && (!boarding||boardingProgress<.72)) {
       ctx.save();if(Date.now()<invulnerableUntil) ctx.globalAlpha=.55+.45*Math.sin(now/85)**2;
-      ctx.fillStyle='#F86B00';ctx.beginPath();ctx.arc(px,py,12,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(px+Math.cos(moving.angle)*11,py+Math.sin(moving.angle)*11,8,0,Math.PI*2);ctx.fill();ctx.restore();
+      drawChomper(px,py,12-5*hopEase,moving.angle,now);ctx.restore();
     }
+    if(boardingProgress>.9) {ctx.fillStyle=`rgba(244,250,255,${(boardingProgress-.9)/.1})`;ctx.fillRect(0,0,width,height);}
   }
   function draw(progress=1) {
     if (!walls) return;
@@ -1246,7 +1336,7 @@ function createEyeGame(onClose) {
     }
     if (remotePlayer && remoteFrom) {
       const t=Math.min(1,(performance.now()-remoteUpdatedAt)/250),x=(remoteFrom.x+(remotePlayer.x-remoteFrom.x)*t)*size+size/2,y=(remoteFrom.y+(remotePlayer.y-remoteFrom.y)*t)*size+size/2;
-      ctx.fillStyle='#b8e9ff';ctx.beginPath();ctx.arc(x,y,11.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(x+11,y,8.5,0,Math.PI*2);ctx.fill();
+      drawChomper(x,y,11.5,0,performance.now(),'#b8e9ff');
     }
     const px=(previousPlayer.x+(player.x-previousPlayer.x)*progress)*size+size/2,py=(previousPlayer.y+(player.y-previousPlayer.y)*progress)*size+size/2;
     if (Date.now()<magnetUntil) {
@@ -1254,8 +1344,7 @@ function createEyeGame(onClose) {
       ctx.save();ctx.strokeStyle='rgba(184,233,255,.72)';ctx.lineWidth=2;ctx.setLineDash([4,7]);ctx.lineDashOffset=-performance.now()/45;
       ctx.beginPath();ctx.arc(px,py,size*pulse,0,Math.PI*2);ctx.stroke();ctx.restore();
     }
-    ctx.fillStyle='#F86B00';ctx.beginPath();ctx.arc(px,py,11.5,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#000d49';ctx.beginPath();ctx.arc(px+Math.cos(moving.angle)*11,py+Math.sin(moving.angle)*11,8.5+Math.sin(performance.now()/75)*1.5,0,Math.PI*2);ctx.fill();
+    drawChomper(px,py,11.5,moving.angle,performance.now());
     if(phase==='boss' && Date.now()<invulnerableUntil && Date.now()-bossStartedAt<bossSafetyMs) {
       const remaining=(invulnerableUntil-Date.now())/bossSafetyMs;
       ctx.save();ctx.strokeStyle=`rgba(184,233,255,${.3+.55*Math.min(1,remaining)})`;ctx.lineWidth=2.5;ctx.setLineDash([3,5]);ctx.lineDashOffset=-performance.now()/35;
@@ -1350,6 +1439,11 @@ function createEyeGame(onClose) {
     requestAnimationFrame(()=>dialog.classList.add('is-visible'));void joinRoom(invitedRoom);$('.eye-game-close').focus({preventScroll:true});
   }
   function testFinalBoss() {
+    if(testingFinalBoss && phase==='escape') {
+      phase='launch';escape.launchAt=Date.now();escape.launchX=doorX()-2;escape.launchY=3;
+      player=previousPlayer={x:escape.launchX,y:escape.launchY};escape.cameraY=0;escape.lavaY=escape.previousLavaY=13;
+      testBossButton.hidden=true;updateStatus('Hop aboard! The rocket is getting ready to launch.');canvas.focus?.({preventScroll:true});return;
+    }
     if(testingFinalBoss && phase==='boss' && (bossStage===2||bossStage===3)) {startEscape();canvas.focus?.({preventScroll:true});return;}
     if(testingFinalBoss && phase==='boss' && bossStage===1) {startFinalBossSecondPhase();canvas.focus?.({preventScroll:true});return;}
     const activeRoom=room;

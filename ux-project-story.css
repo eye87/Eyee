@@ -1,18 +1,35 @@
 /* A single project stays in view; the reading column sets the rhythm. */
-.ux-project-story {display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:88px; align-items:start; margin-top:80px;}
-.ux-project-stage {position:sticky; top:150px; margin:0; min-width:0;}
+.ux-project-story {display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:88px; align-items:start; margin-top:60px;}
+.ux-project-stage {position:sticky; top:180px; margin:0; min-width:0;}
 .ux-project-client-logo {display:block; width:160px; height:33px; margin-top:24px; background:var(--color-blue); -webkit-mask:url('assets/dvn.svg') left center/contain no-repeat; mask:url('assets/dvn.svg') left center/contain no-repeat;}
 .ux-project-window {overflow:hidden; aspect-ratio:1.08; border-radius:0; clip-path:inset(0 round 64px 24px 80px 24px); background:transparent;}
 .ux-project-window img {width:100%; height:100%; object-fit:cover; object-position:58% 50%; transform:scale(var(--ux-project-zoom,1.02)); transform-origin:var(--ux-project-origin,50% 50%);}
 .ux-project-chapters {min-width:0;}
 .ux-project-story .ux-service-chapter {display:block; min-height:0; padding:0 0 40px;}
-.ux-project-story .ux-service-chapter:first-child {padding-top:40px;}
+.ux-project-story .ux-service-chapter:first-child {padding-top:30px;}
 .ux-project-story .ux-service-chapter:last-child {min-height:0; padding-bottom:40px;}
 .ux-project-story .ux-service-copy {max-width:400px;}
 .ux-detail #ux-main .ux-project-story .ux-service-copy h3 {font-size:24px; line-height:1.2; letter-spacing:-.035em; margin-bottom:12px;}
+.ux-service-copy .ux-discipline {color:var(--ux-accent,var(--color-blue));}
 .ux-project-story .ux-service-copy :is(p,ul) {font-size:16px; line-height:1.6;}
-.ux-project-story .ux-service-aside .ux-quickscan-cta {margin-top:8px;}
+.ux-project-story .ux-service-aside .ux-quickscan-cta {margin-top:24px;}
 .ux-project-story .ux-service-aside {padding-bottom:0;}
+.ux-project-story .ux-service-aside .ux-service-copy {position:relative; isolation:isolate; padding:40px; border:0; background:transparent; color:var(--color-navy);}
+.ux-project-story .ux-service-aside .ux-service-copy::before {content:''; position:absolute; inset:0; z-index:-1; border-radius:40px 24px 48px 24px; background:#b9caff; transform:rotate(-1deg);}
+.ux-detail #ux-main .ux-project-story .ux-service-aside h3 {font-size:22px; color:var(--color-navy);}
+.ux-project-story .ux-service-aside .ux-quickscan-cta {display:inline-flex; gap:0; max-width:100%; margin-right:0; color:#fff; background:var(--color-blue); text-decoration:none; text-align:left; font-size:14px; padding:13px 18px;}
+.ux-project-story .ux-service-aside .ux-quickscan-cta > span {display:inline-block; position:static; width:18px; max-width:0; overflow:hidden; opacity:0; transform:translateX(-8px); color:inherit; flex-shrink:0; transition:max-width .25s ease,opacity .25s ease,transform .25s ease;}
+.ux-project-story .ux-service-aside .ux-quickscan-cta > span img {display:block; width:14px; height:9px; max-width:none; margin:0 auto;}
+.ux-project-story .ux-service-aside .ux-quickscan-cta:is(:hover,:focus-visible) {gap:10px;}
+.ux-project-story .ux-service-aside .ux-quickscan-cta:is(:hover,:focus-visible) > span {max-width:18px; opacity:1; transform:translateX(0);}
+@media(prefers-reduced-motion:reduce) {.ux-project-story .ux-service-aside .ux-quickscan-cta,.ux-project-story .ux-service-aside .ux-quickscan-cta > span {transition:none;}}
+@media(min-width:901px) {
+ .ux-project-story {align-items:start;}
+ .ux-project-stage {position:sticky; top:180px; align-self:start;}
+ .ux-project-window {position:relative; aspect-ratio:1.08; max-height:calc(100svh - 220px);}
+ .ux-project-client-logo {position:absolute; top:100%; margin-top:24px;}
+ .ux-project-story .ux-service-chapter:last-child {padding-bottom:0;}
+}
 .ux-project-mobile {display:none;}
 @media(max-width:1100px) and (min-width:901px) {.ux-project-story {gap:48px;}}
 @media(max-width:900px) {
@@ -21,6 +38,7 @@
  .ux-project-story .ux-service-chapter,.ux-project-story .ux-service-chapter:first-child,.ux-project-story .ux-service-chapter:last-child {min-height:0; padding:0; margin-bottom:40px;}
  .ux-project-story .ux-service-chapter:last-child {margin-bottom:0;}
  .ux-project-story .ux-service-copy {max-width:600px;}
+ .ux-project-story .ux-service-aside .ux-service-copy {padding:32px;}
  .ux-project-mobile {display:block; margin:0 0 40px;}
  .ux-project-mobile > div {overflow:hidden; aspect-ratio:1.4; border-radius:40px 16px 56px 16px;}
  .ux-project-mobile img {width:100%; height:100%; object-fit:cover;}

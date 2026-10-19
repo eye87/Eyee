@@ -162,7 +162,7 @@ if ($action==='join') {
         if ($room['phase']==='escape' && !empty($request['escapeWin']) && $player['escapeY']<=3 && abs($player['escapeX']-13)<=2) {
           $room['phase']='launch';$room['launchStartedAt']=$now;
         }
-        if ($room['phase']==='launch' && $now-(float)($room['launchStartedAt']??$now)>=2.2) $room['phase']='won';
+        if ($room['phase']==='launch' && $now-(float)($room['launchStartedAt']??$now)>=6.9) $room['phase']='won';
       }
       $player['x']=max(1,min($cols-2,(int)($request['x']??$player['x'])));
       $player['y']=max(1,min($rows-2,(int)($request['y']??$player['y'])));

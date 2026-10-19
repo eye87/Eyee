@@ -43,7 +43,7 @@
     if (!gameCssLink) {
       gameCssLink = document.createElement('link');
       gameCssLink.rel = 'stylesheet';
-      gameCssLink.href = 'eye-game.css?v=20261018-95';
+      gameCssLink.href = 'eye-game.css?v=20261019-96';
       document.head.appendChild(gameCssLink);
     }
     // A classic script also works when the concept is opened as a local file.
@@ -52,7 +52,7 @@
     gamePromise = new Promise((resolve, reject) => {
       if (window.EyeeGame?.createEyeGame) { resolve(window.EyeeGame); return; }
       gameScript = document.createElement('script');
-      gameScript.src = 'eye-game-play.js?v=20261018-112';
+      gameScript.src = 'eye-game-play.js?v=20261019-124';
       const timeout = setTimeout(() => reject(new Error('Could not load game code')), 8000);
       gameScript.onload = () => {
         clearTimeout(timeout);

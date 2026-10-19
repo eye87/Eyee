@@ -33,7 +33,7 @@
     // Follow the team heading, not the section's generous top padding.
     const extraSpace=sections[current].matches('.ux-people')
       ? Math.max(0,document.querySelector('#ux-people-title').getBoundingClientRect().top-box.top)+innerHeight*.08
-      : sections[current].matches('.ux-work')?100:0;
+      : sections[current].matches('.ux-work')?180:0;
     const blend = reduced() ? 1 : Math.max(0,Math.min(1,(line-box.top-extraSpace)/(innerHeight*.65)));
     const eased = blend*blend*(3-2*blend);
     const previous = palette[Math.max(0,current-1)];

@@ -11,7 +11,7 @@ chrome = chrome.replace(/<template id="eye-game-template">[\s\S]*?<\/template>/,
 chrome = chrome.replace('<body>','<body class="ux-detail" data-floating-cta="ux">');
 chrome = chrome.replace(/<title>[\s\S]*?<\/title>/,'<title>UX &amp; UI design — Heldere interfaces, betere ervaringen | Eyee</title>');
 chrome = chrome.replace(/(<meta\s+name="description"\s+content=")[^"]*(")/,'$1Eyee verbindt gebruikersonderzoek, interactieontwerp en UI design. Voor heldere websites, webshops en applicaties. Bekijk ons werk en de UX Quickscan.$2');
-chrome = chrome.replace('</head>','<meta name="robots" content="noindex,follow"><link rel="stylesheet" href="ux-detail.css?v=20261018-2"><link rel="stylesheet" href="ux-motion.css?v=20261018-5"><link rel="stylesheet" href="ux-project-story.css?v=20261018-9"></head>');
+chrome = chrome.replace('</head>','<meta name="robots" content="noindex,follow"><link rel="stylesheet" href="ux-detail.css?v=20261018-2"><link rel="stylesheet" href="ux-motion.css?v=20261018-5"><link rel="stylesheet" href="ux-project-story.css?v=20261019-4"></head>');
 chrome = chrome.replaceAll('href="#contact"','href="https://eye-entertainment.nl/contact/"');
 const footerStart = home.indexOf('<div class="footer-shell">');
 const scriptsStart = home.indexOf('<script src="script.js');
@@ -35,7 +35,7 @@ let content = read('ux-content.html');
 content = content.replace(/^[ \t]*<section id="ux-contact"[\s\S]*?<\/section>/m,'').replaceAll('href="#ux-contact"','href="https://eye-entertainment.nl/contact/"');
 // Keep the Quickscan as a contextual secondary action, not a separate sales section.
 content = content.replace(/^[ \t]*<section class="ux-section ux-scan-section"[\s\S]*?<\/section>/m,'');
-content = content.replace(/(<h3 data-en="Improve what is already there">[\s\S]*?<\/p>)/,'$1<a class="hero-cta hero-cta-secondary ux-quickscan-cta" href="https://eye-entertainment.nl/gratis-ux-scan/"><b data-en="Explore the UX Quickscan">Ontdek de UX Quickscan</b><span aria-hidden="true"><img src="assets/arrow-right-white.svg" width="14" height="9" alt=""></span></a>');
+content = content.replace(/(<h3 data-en="Where could it work better\?">[\s\S]*?<\/p>)/,'$1<a class="ux-button ux-quickscan-cta" href="https://eye-entertainment.nl/gratis-ux-scan/"><b data-en="Request a UX Quickscan">Vraag een UX Quickscan aan</b><span aria-hidden="true"><img src="assets/arrow-right-white.svg" width="14" height="9" alt=""></span></a>');
 // Use the homepage hero itself, not a second approximation of its layout.
 const detailHero = content.slice(content.indexOf('<section'),content.indexOf('</section>')+10);
 const heroStart = home.indexOf('<section',home.indexOf('<main id="home">'));
@@ -82,5 +82,5 @@ let benefitIndex=0;
 content=content.replace(/(<div class="ux-challenges">[\s\S]*?<\/section>)/,block=>block.replace(/<span aria-hidden="true">\d+<\/span>/g,()=>`<div class="ux-process-art ux-benefit-art" aria-hidden="true"><svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">${benefitIcons[benefitIndex++]}</svg></div>`));
 // Keep the homepage footer intact; only page-relative navigation is resolved.
 fs.appendFileSync(path.join(root,'ux-navigation.js'),'\n'+logoRuntime+'\n'+footerEyeRuntime.replace("reduced.addEventListener('change', resetEye);","document.addEventListener('eyeeaccessibilitychange', resetEye); matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', resetEye);"));
-fs.writeFileSync(path.join(root,'ui-ux-design.html'),links(chrome).replace('ux-detail.css?v=20261018-2','ux-detail.css?v=20261018-12').replace('ux-motion.css?v=20261018-5','ux-motion.css?v=20261018-25')+content+links(footer)+scripts.replace('ux-motion.js?v=20261018-3','ux-motion.js?v=20261018-18'));
+fs.writeFileSync(path.join(root,'ui-ux-design.html'),links(chrome).replace('ux-detail.css?v=20261018-2','ux-detail.css?v=20261018-12').replace('ux-motion.css?v=20261018-5','ux-motion.css?v=20261018-25')+content+links(footer)+scripts.replace('ux-motion.js?v=20261018-3','ux-motion.js?v=20261019-1'));
 console.log('Built ui-ux-design.html and ux-navigation.js');
